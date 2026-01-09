@@ -95,7 +95,8 @@
 
       function statusText(s) {
         if (s === "c") return "&#10004;";  // ✔
-        if (s === "nc") return "&#10008;"; // ✘
+        if (s === "nc") return "&#9888;";  // ⚠
+        if (s === "nca") return "&#10008;"; // ✘
         if (s === "na") return "—";
         return "—";
       }
@@ -107,7 +108,10 @@
           const s = items[i].status;
           const st = statusText(s);
           const note = items[i].note || "";
-          const cls = s === "c" ? "status-c" : (s === "nc" ? "status-nc" : "");
+          let cls = "";
+          if (s === "c") cls = "status-c";
+          else if (s === "nc") cls = "status-nc";
+          else if (s === "nca") cls = "status-nca";
           html += "<tr><td>" + label + "</td><td class='center " + cls + "'>" + st + "</td><td>" + note + "</td></tr>";
         }
         return html;
@@ -139,7 +143,8 @@ th, td { border: 1px solid #000; padding: 4px 6px; text-align: left; }\
 th { background: #eee; font-weight: bold; }\
 td.center { text-align: center; font-size: 14px; }\
 td.status-c { color: #1a5c38; }\
-td.status-nc { color: #8b1a1a; }\
+td.status-nc { color: #d97706; }\
+td.status-nca { color: #8b1a1a; }\
 .check-table td:nth-child(2) { width: 50px; }\
 .check-table td:nth-child(3) { width: 30%; }\
 .section { page-break-inside: avoid; margin-top: 10px; }\
@@ -208,7 +213,7 @@ td.status-nc { color: #8b1a1a; }\
 <div><div class="lbl">Epreuve Statique (x' + statCoef + ')</div><div class="val">' + Math.round(data.cmu * statCoef) + ' kg</div></div>\
 </div>\
 \
-<p style="font-size:9px;margin-bottom:5px;"><b>Legende:</b> <span style="color:#1a5c38;font-weight:bold;">&#10004;</span> Conforme | <span style="color:#8b1a1a;font-weight:bold;">&#10008;</span> Non Conforme | <span style="font-weight:bold;">—</span> Non Applicable</p>\
+<p style="font-size:9px;margin-bottom:5px;"><b>Legende:</b> <span style="color:#1a5c38;font-weight:bold;">&#10004;</span> Conforme | <span style="color:#d97706;font-weight:bold;">&#9888;</span> NC (reserve) | <span style="color:#8b1a1a;font-weight:bold;">&#10008;</span> NC (arret) | <span style="font-weight:bold;">—</span> N/A</p>\
 \
 <div class="section">\
 <h2>1. EXAMEN DOCUMENTAIRE</h2>\

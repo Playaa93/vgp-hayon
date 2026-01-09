@@ -584,20 +584,21 @@ document.querySelectorAll('.section-toggle').forEach(toggle => {
   });
 });
 
-// Status Selector (C/NC/NA)
+// Status Selector (C/NC/NCA/NA)
 document.querySelectorAll('.status-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
     const item = e.target.closest('.check-item');
     const section = item.dataset.section;
     const status = e.target.dataset.status;
+    const noteInput = item.querySelector('.note');
 
     // Remove active from all buttons in this item
     item.querySelectorAll('.status-btn').forEach(b => {
-      b.classList.remove('active-c', 'active-nc', 'active-na');
+      b.classList.remove('active-c', 'active-nc', 'active-nca', 'active-na');
     });
 
     // Remove item status classes
-    item.classList.remove('status-c', 'status-nc', 'status-na');
+    item.classList.remove('status-c', 'status-nc', 'status-nca', 'status-na');
 
     // Add active to clicked button
     e.target.classList.add(`active-${status}`);
@@ -608,9 +609,44 @@ document.querySelectorAll('.status-btn').forEach(btn => {
     // Store status in data attribute
     item.dataset.status = status;
 
+    // If NC or NCA, focus on observation field and make it required
+    if (status === 'nc' || status === 'nca') {
+      noteInput.setAttribute('required', 'true');
+      noteInput.placeholder = 'Observation OBLIGATOIRE';
+      noteInput.focus();
+      item.classList.add('needs-observation');
+    } else {
+      noteInput.removeAttribute('required');
+      noteInput.placeholder = 'Observation';
+      item.classList.remove('needs-observation');
+    }
+
     updateSectionStatus(section);
+    updateVerdictFromStatus();
   });
 });
+
+// Auto-update verdict based on NC/NCA status
+function updateVerdictFromStatus() {
+  const avisSelect = document.getElementById('avis');
+  let hasNCA = false;
+  let hasNC = false;
+
+  document.querySelectorAll('.check-item').forEach(item => {
+    const status = item.dataset.status;
+    if (status === 'nca') hasNCA = true;
+    if (status === 'nc') hasNC = true;
+  });
+
+  // Auto-set verdict based on findings
+  if (hasNCA) {
+    avisSelect.value = 'non-conforme';
+    showToast('Verdict auto: NON CONFORME (mise à l\'arrêt)');
+  } else if (hasNC) {
+    avisSelect.value = 'reserve';
+    showToast('Verdict auto: Conforme sous réserve');
+  }
+}
 
 function updateSectionStatus(section) {
   const items = document.querySelectorAll(`.check-item[data-section="${section}"]`);
@@ -785,9 +821,9 @@ function loadInspection(id) {
         }
 
         // Update visual state
-        item.classList.remove('status-c', 'status-nc', 'status-na');
+        item.classList.remove('status-c', 'status-nc', 'status-nca', 'status-na');
         item.querySelectorAll('.status-btn').forEach(btn => {
-          btn.classList.remove('active-c', 'active-nc', 'active-na');
+          btn.classList.remove('active-c', 'active-nc', 'active-nca', 'active-na');
         });
 
         if (status) {
@@ -797,9 +833,19 @@ function loadInspection(id) {
           if (activeBtn) activeBtn.classList.add(`active-${status}`);
         }
 
-        // Show note indicator
-        if (data.note && (status === 'nc' || !status)) {
+        // Show note indicator for NC/NCA
+        if (data.note && (status === 'nc' || status === 'nca' || !status)) {
           item.classList.add('has-note');
+        }
+
+        // Mark needs-observation for NC/NCA
+        if (status === 'nc' || status === 'nca') {
+          item.classList.add('needs-observation');
+          const noteInput = item.querySelector('.note');
+          if (noteInput) {
+            noteInput.setAttribute('required', 'true');
+            noteInput.placeholder = 'Observation OBLIGATOIRE';
+          }
         }
       }
     });
@@ -1067,7 +1113,8 @@ function generatePDF() {
           font-size: 12px;
         }
         .legend-badge.c { color: #1a5c38; }
-        .legend-badge.nc { color: #8b1a1a; }
+        .legend-badge.nc { color: #d97706; }
+        .legend-badge.nca { color: #8b1a1a; }
         .legend-badge.na { color: #000; }
 
         /* ========== CHECK SECTIONS ========== */
@@ -1116,7 +1163,8 @@ function generatePDF() {
 
         .status-cell { text-align: center; font-weight: 700; font-size: 14px; }
         .status-c { color: #1a5c38; }
-        .status-nc { color: #8b1a1a; }
+        .status-nc { color: #d97706; }
+        .status-nca { color: #8b1a1a; }
         .status-na { color: #000; }
 
         .obs-cell { font-style: italic; color: #6b7280; font-size: 7px; }
@@ -1375,13 +1423,14 @@ function generatePDF() {
       <!-- ========== LÉGENDE ========== -->
       <div class="legend">
         <div class="legend-item"><span class="legend-badge c">✔</span> Conforme</div>
-        <div class="legend-item"><span class="legend-badge nc">✘</span> Non Conforme</div>
-        <div class="legend-item"><span class="legend-badge na">—</span> Sans Objet</div>
+        <div class="legend-item"><span class="legend-badge nc">⚠</span> NC (réserve)</div>
+        <div class="legend-item"><span class="legend-badge nca">✘</span> NC (arrêt)</div>
+        <div class="legend-item"><span class="legend-badge na">—</span> N/A</div>
         <div class="legend-item"><span class="required-mark">*</span> Point obligatoire</div>
       </div>
 
       <!-- ========== CONTRÔLES ========== -->
-      ${generateStandardSectionHTML('1. EXAMEN D'ADÉQUATION ET DOCUMENTAIRE', 'Art. 5 − Arrêté 01/03/2004', data.sections.docs, [
+      ${generateStandardSectionHTML("1. EXAMEN D'ADEQUATION ET DOCUMENTAIRE", "Art. 5 - Arrete 01/03/2004", data.sections.docs, [
         { label: 'Plaque signalétique lisible et complète', required: true },
         { label: 'CMU / Abaque de charges présent et lisible', required: true },
         { label: 'Consignes de sécurité affichées', required: false },
@@ -1390,7 +1439,7 @@ function generatePDF() {
         { label: 'Carnet de maintenance à jour', required: false }
       ])}
 
-      ${generateStandardSectionHTML('2. EXAMEN DE L'ÉTAT DE CONSERVATION', 'Art. 9 − Arrêté 01/03/2004', data.sections.visuel, [
+      ${generateStandardSectionHTML("2. EXAMEN DE L'ETAT DE CONSERVATION", "Art. 9 - Arrete 01/03/2004", data.sections.visuel, [
         { label: 'Fixation châssis − serrage et état des boulons', required: true },
         { label: 'Revêtement sol antidérapant', required: false },
         { label: 'État général structure (déformation, corrosion, fissures)', required: true },
@@ -1407,7 +1456,7 @@ function generatePDF() {
         { label: 'Retour au neutre automatique', required: false }
       ])}
 
-      ${generateStandardSectionHTML('3. DISPOSITIFS DE SÉCURITÉ', 'Art. 9 − Arrêté 01/03/2004', data.sections.securite, [
+      ${generateStandardSectionHTML("3. DISPOSITIFS DE SECURITE", "Art. 9 - Arrete 01/03/2004", data.sections.securite, [
         { label: 'Limiteur de charge (déclenchement ≤ 110% CMU)', required: true },
         { label: 'Limiteur de débit (vitesse descente ≤ 0,15 m/s)', required: true },
         { label: 'Freinage vertical (descente ≤ 10 cm)', required: true },
@@ -1417,7 +1466,7 @@ function generatePDF() {
         { label: 'Feux à éclats / gyrophare', required: false }
       ])}
 
-      ${generateStandardSectionHTML('4. ESSAIS DE FONCTIONNEMENT ET ÉPREUVES', 'Art. 10-11 − Arrêté 01/03/2004', data.sections.essais, [
+      ${generateStandardSectionHTML("4. ESSAIS DE FONCTIONNEMENT ET EPREUVES", "Art. 10-11 - Arrete 01/03/2004", data.sections.essais, [
         { label: 'Essai des mouvements (montée, descente, inclinaison)', required: true },
         { label: 'Épreuve dynamique − charge ' + Math.round((data.cmu || 0) * dynCoef) + ' kg', required: true },
         { label: 'Épreuve statique 1h − charge ' + Math.round((data.cmu || 0) * statCoef) + ' kg', required: true },
@@ -1644,7 +1693,8 @@ function generateStandardSectionHTML(title, article, items, labels) {
     let statusText, statusClass;
     switch (status) {
       case 'c': statusText = '✔'; statusClass = 'status-c'; break;
-      case 'nc': statusText = '✘'; statusClass = 'status-nc'; break;
+      case 'nc': statusText = '⚠'; statusClass = 'status-nc'; break;
+      case 'nca': statusText = '✘'; statusClass = 'status-nca'; break;
       case 'na': statusText = '—'; statusClass = 'status-na'; break;
       default: statusText = '—'; statusClass = '';
     }

@@ -490,6 +490,11 @@ textarea::placeholder {
 }
 
 .check-item.status-nc {
+  background: #fef3c7;
+  border-color: #d97706;
+}
+
+.check-item.status-nca {
   background: var(--destructive-light);
   border-color: var(--destructive);
 }
@@ -498,6 +503,16 @@ textarea::placeholder {
   background: var(--muted);
   border-color: var(--border);
   opacity: 0.7;
+}
+
+.check-item.needs-observation .note {
+  border-color: #d97706;
+  background: #fffbeb;
+}
+
+.check-item.needs-observation .note:focus {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
 
 /* Required questions */
@@ -581,6 +596,12 @@ textarea::placeholder {
 }
 
 .status-btn.active-nc {
+  background: #d97706;
+  border-color: #d97706;
+  color: white;
+}
+
+.status-btn.active-nca {
   background: var(--destructive);
   border-color: var(--destructive);
   color: white;
