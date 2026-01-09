@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview PDF VGP</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; text-align: center; }
+    h1 { color: #333; }
+    .btn { display: inline-block; padding: 15px 30px; background: #333; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 10px; }
+    .btn:hover { background: #555; }
+  </style>
+</head>
+<body>
+  <h1>Preview PDF VGP</h1>
+  <p>Format A4 standard - Noir et blanc</p>
+  <button class="btn" onclick="generatePreviewPDF()">Generer le PDF</button>
+
+  <script>
+    function generatePreviewPDF() {
+      const data = {
+        id: Date.now().toString(),
+        dateInspection: new Date().toISOString().split("T")[0],
+        inspecteur: "Jacky FEDE",
+        typeEquipement: "hayon-rabattable",
+        marquageCe: "ce",
+        client: "Transport Express SARL",
+        immat: "AB-123-CD",
+        marqueHayon: "Dhollandia",
+        numSerie: "DH-2024-78542",
+        cmu: "1500",
+        hauteurLevage: "1.4",
+        chargeEssai: "1650",
+        avis: "conforme",
+        observations: "RAS - Equipement en bon etat general.",
+        prochaineVgp: new Date(Date.now() + 365*24*60*60*1000).toISOString().split("T")[0],
+        sections: {
+          docs: [
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "na", note: "" }
+          ],
+          visuel: [
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "na", note: "" }
+          ],
+          securite: [
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "na", note: "" }
+          ],
+          essais: [
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" },
+            { status: "c", note: "" }
+          ]
+        }
+      };
+
+      const isCe = data.marquageCe === "ce";
+      const dynCoef = isCe ? 1.1 : 1.2;
+      const statCoef = isCe ? 1.25 : 1.5;
+      const year = new Date(data.dateInspection).getFullYear();
+      const reportNum = "VGP-" + year + "-" + data.id.slice(-4).padStart(4, "0");
+
+      function formatDate(dateStr) {
+        if (!dateStr) return "-";
+        const d = new Date(dateStr);
+        return d.toLocaleDateString("fr-FR");
+      }
+
+      function getType(type) {
+        const t = {
+          "hayon-rabattable": "Hayon Rabattable",
+          "hayon-repliable": "Hayon Repliable",
+          "hayon-gerbeur": "Hayon Gerbeur",
+          "table-fixe": "Table Elevatrice Fixe",
+          "table-mobile": "Table Elevatrice Mobile"
+        };
+        return t[type] || type || "-";
+      }
+
+      function statusText(s) {
+        if (s === "c") return "&#10004;";  // ✔
+        if (s === "nc") return "&#10008;"; // ✘
+        if (s === "na") return "—";
+        return "—";
+      }
+
+      function makeRows(items, labels) {
+        let html = "";
+        for (let i = 0; i < items.length; i++) {
+          const label = labels[i] || "Point " + (i+1);
+          const s = items[i].status;
+          const st = statusText(s);
+          const note = items[i].note || "";
+          const cls = s === "c" ? "status-c" : (s === "nc" ? "status-nc" : "");
+          html += "<tr><td>" + label + "</td><td class='center " + cls + "'>" + st + "</td><td>" + note + "</td></tr>";
+        }
+        return html;
+      }
+
+      const printWindow = window.open("", "_blank");
+      printWindow.document.write('<!DOCTYPE html>\
+<html lang="fr">\
+<head>\
+<meta charset="UTF-8">\
+<title></title>\
+<style>\
+@page { size: A4; margin: 20mm 15mm; }\
+@page { @top-left { content: none; } @top-right { content: none; } @bottom-left { content: none; } @bottom-right { content: none; } }\
+* { margin: 0; padding: 0; box-sizing: border-box; }\
+body { font-family: Arial, sans-serif; font-size: 11px; line-height: 1.4; color: #000; }\
+h1 { font-size: 14px; text-align: center; margin-bottom: 5px; text-transform: uppercase; }\
+h2 { font-size: 11px; background: #000; color: #fff; padding: 4px 8px; margin: 10px 0 5px 0; }\
+.header { border: 2px solid #000; padding: 10px; margin-bottom: 15px; }\
+.header-top { display: flex; justify-content: space-between; margin-bottom: 10px; }\
+.header-top .left { font-weight: bold; font-size: 14px; }\
+.header-top .right { text-align: right; font-size: 10px; }\
+.subtitle { text-align: center; font-size: 11px; margin-bottom: 8px; }\
+.legal { text-align: center; font-size: 9px; color: #333; border-top: 1px solid #000; padding-top: 8px; margin-top: 8px; }\
+.info-grid { display: flex; gap: 15px; margin-bottom: 10px; }\
+.info-grid > div { flex: 1; }\
+table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 10px; }\
+th, td { border: 1px solid #000; padding: 4px 6px; text-align: left; }\
+th { background: #eee; font-weight: bold; }\
+td.center { text-align: center; font-size: 14px; }\
+td.status-c { color: #1a5c38; }\
+td.status-nc { color: #8b1a1a; }\
+.check-table td:nth-child(2) { width: 50px; }\
+.check-table td:nth-child(3) { width: 30%; }\
+.section { page-break-inside: avoid; margin-top: 10px; }\
+.conclusion { border: 2px solid #000; padding: 10px; margin: 15px 0; }\
+.conclusion h3 { font-size: 12px; margin-bottom: 8px; text-transform: uppercase; }\
+.verdict { font-size: 14px; font-weight: bold; text-align: center; padding: 10px; border: 2px solid #000; margin-bottom: 10px; }\
+.verdict.conforme { color: #1a5c38; border-color: #1a5c38; }\
+.verdict.reserve { color: #8b6914; border-color: #8b6914; }\
+.verdict.non-conforme { color: #8b1a1a; border-color: #8b1a1a; }\
+.signatures { display: flex; gap: 20px; margin-top: 20px; }\
+.sig-box { flex: 1; }\
+.sig-box .label { font-weight: bold; font-size: 10px; margin-bottom: 5px; }\
+.sig-box .line { border-bottom: 1px solid #000; height: 50px; margin-top: 30px; }\
+.footer { margin-top: 15px; padding-top: 10px; border-top: 2px solid #000; font-size: 9px; display: flex; justify-content: space-between; }\
+.photos-page { page-break-before: always; }\
+.photos-page h2 { margin-top: 0; }\
+.photos-grid { display: flex; flex-wrap: wrap; gap: 10px; }\
+.photo-item { width: calc(33% - 7px); border: 1px solid #000; }\
+.photo-item img { width: 100%; display: block; }\
+.photo-caption { font-size: 8px; padding: 3px; text-align: center; background: #eee; }\
+.charges { display: flex; gap: 10px; margin: 10px 0; }\
+.charges > div { flex: 1; border: 1px solid #000; padding: 8px; text-align: center; }\
+.charges .val { font-size: 14px; font-weight: bold; }\
+.charges .lbl { font-size: 9px; }\
+@media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }\
+</style>\
+</head>\
+<body>\
+<div class="header">\
+<div class="header-top">\
+<div class="left">FLEETZEN</div>\
+<div class="right">Rapport N° ' + reportNum + '<br>Page 1/1</div>\
+</div>\
+<h1>Rapport de Verification Generale Periodique</h1>\
+<div class="subtitle">Appareil de levage - ' + getType(data.typeEquipement) + '</div>\
+<div class="legal">Arrete du 1er mars 2004 - Articles R.4323-23 a R.4323-27 du Code du Travail</div>\
+</div>\
+\
+<div class="info-grid">\
+<div>\
+<table>\
+<tr><th colspan="2">IDENTIFICATION APPAREIL</th></tr>\
+<tr><td><b>Type</b></td><td>' + getType(data.typeEquipement) + '</td></tr>\
+<tr><td><b>Marque</b></td><td>' + data.marqueHayon.toUpperCase() + '</td></tr>\
+<tr><td><b>N° Serie</b></td><td>' + data.numSerie + '</td></tr>\
+<tr><td><b>Immatriculation</b></td><td>' + data.immat + '</td></tr>\
+<tr><td><b>Marquage CE</b></td><td>' + (isCe ? "OUI" : "NON") + '</td></tr>\
+<tr><td><b>CMU</b></td><td>' + data.cmu + ' kg</td></tr>\
+</table>\
+</div>\
+<div>\
+<table>\
+<tr><th colspan="2">INTERVENTION</th></tr>\
+<tr><td><b>Client</b></td><td>' + data.client + '</td></tr>\
+<tr><td><b>Date</b></td><td>' + formatDate(data.dateInspection) + '</td></tr>\
+<tr><td><b>Inspecteur</b></td><td>' + data.inspecteur + '</td></tr>\
+<tr><td><b>Charge essai</b></td><td>' + data.chargeEssai + ' kg</td></tr>\
+<tr><td><b>Prochaine VGP</b></td><td>' + formatDate(data.prochaineVgp) + '</td></tr>\
+</table>\
+</div>\
+</div>\
+\
+<div class="charges">\
+<div><div class="lbl">CMU</div><div class="val">' + data.cmu + ' kg</div></div>\
+<div><div class="lbl">Epreuve Dynamique (x' + dynCoef + ')</div><div class="val">' + Math.round(data.cmu * dynCoef) + ' kg</div></div>\
+<div><div class="lbl">Epreuve Statique (x' + statCoef + ')</div><div class="val">' + Math.round(data.cmu * statCoef) + ' kg</div></div>\
+</div>\
+\
+<p style="font-size:9px;margin-bottom:5px;"><b>Legende:</b> <span style="color:#1a5c38;font-weight:bold;">&#10004;</span> Conforme | <span style="color:#8b1a1a;font-weight:bold;">&#10008;</span> Non Conforme | <span style="font-weight:bold;">—</span> Non Applicable</p>\
+\
+<div class="section">\
+<h2>1. EXAMEN DOCUMENTAIRE</h2>\
+<table class="check-table">\
+<tr><th>Point de controle</th><th>Etat</th><th>Observations</th></tr>\
+' + makeRows(data.sections.docs, ["Plaque signaletique", "CMU / Abaque", "Certificat CE", "Notice utilisation", "Carnet maintenance"]) + '\
+</table>\
+</div>\
+\
+<div class="section">\
+<h2>2. ETAT DE CONSERVATION</h2>\
+<table class="check-table">\
+<tr><th>Point de controle</th><th>Etat</th><th>Observations</th></tr>\
+' + makeRows(data.sections.visuel, ["Fixation chassis", "Structure generale", "Flexibles hydrauliques", "Verins", "Verrouillage position route", "Commandes", "Arret urgence", "Connectique electrique", "Eclairage", "Signalisation"]) + '\
+</table>\
+</div>\
+\
+<div class="section">\
+<h2>3. DISPOSITIFS DE SECURITE</h2>\
+<table class="check-table">\
+<tr><th>Point de controle</th><th>Etat</th><th>Observations</th></tr>\
+' + makeRows(data.sections.securite, ["Limiteur de charge", "Limiteur de debit", "Freinage vertical", "Stop palette", "Signalisation"]) + '\
+</table>\
+</div>\
+\
+<div class="section">\
+<h2>4. ESSAIS ET EPREUVES</h2>\
+<table class="check-table">\
+<tr><th>Point de controle</th><th>Etat</th><th>Observations</th></tr>\
+' + makeRows(data.sections.essais, ["Essai mouvements", "Epreuve dynamique " + Math.round(data.cmu * dynCoef) + " kg", "Epreuve statique " + Math.round(data.cmu * statCoef) + " kg", "Maintien charge 10 min"]) + '\
+</table>\
+</div>\
+\
+<div class="section conclusion">\
+<h3>Conclusion</h3>\
+<div class="verdict conforme">APPAREIL CONFORME - Maintien en service autorise</div>\
+<table>\
+<tr><td><b>Observations</b></td><td>' + data.observations + '</td></tr>\
+<tr><td><b>Actions requises</b></td><td>Aucune</td></tr>\
+</table>\
+</div>\
+\
+<div class="signatures">\
+<div class="sig-box">\
+<div class="label">Inspecteur: ' + data.inspecteur + '</div>\
+<div class="line"></div>\
+</div>\
+<div class="sig-box">\
+<div class="label">Client: ' + data.client + '</div>\
+<div class="line"></div>\
+</div>\
+</div>\
+\
+<div class="footer">\
+<div>Document a conserver 5 ans minimum - Art. R.4323-25 Code du Travail</div>\
+<div>Ref: ' + reportNum + '</div>\
+</div>\
+\
+</body>\
+</html>');
+      printWindow.document.close();
+      setTimeout(function() { printWindow.print(); }, 200);
+    }
+  </script>
+</body>
+</html>

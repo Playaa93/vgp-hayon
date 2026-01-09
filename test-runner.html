@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VGP Tests - Runner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f1114;
+      color: #e5e7eb;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #14b8a6;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 2rem;
+    }
+    .test-frame {
+      width: 100%;
+      height: 0;
+      border: none;
+      visibility: hidden;
+      position: absolute;
+    }
+    .controls {
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    button svg {
+      width: 1rem;
+      height: 1rem;
+    }
+    .btn-run {
+      background: linear-gradient(145deg, #14b8a6 0%, #0f766e 100%);
+      color: white;
+    }
+    .btn-run:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+    }
+    .btn-run:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-clear {
+      background: #374151;
+      color: white;
+    }
+    .btn-pdf {
+      background: linear-gradient(145deg, #8b5cf6 0%, #6d28d9 100%);
+      color: white;
+    }
+    .btn-pdf:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+    .status-bar {
+      display: flex;
+      gap: 2rem;
+      padding: 1rem;
+      background: #1f2937;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+    }
+    .stat-pass .stat-value { color: #22c55e; }
+    .stat-fail .stat-value { color: #ef4444; }
+    .stat-rate .stat-value { color: #14b8a6; }
+    .results {
+      background: #1f2937;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .result-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #374151;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .result-item:last-child {
+      border-bottom: none;
+    }
+    .result-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-shrink: 0;
+    }
+    .result-icon.pass { color: #22c55e; }
+    .result-icon.fail { color: #ef4444; }
+    .result-pass { background: rgba(34, 197, 94, 0.1); }
+    .result-fail { background: rgba(239, 68, 68, 0.1); }
+    .result-message {
+      flex: 1;
+    }
+    .result-config {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.25rem;
+    }
+    .spinner {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid #374151;
+      border-top-color: #14b8a6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .progress-bar {
+      height: 4px;
+      background: #374151;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #14b8a6, #22c55e);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .config-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      background: #374151;
+      border-radius: 4px;
+      font-size: 0.6875rem;
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>VGP Unit Tests</h1>
+  <p class="subtitle">10 configurations testees automatiquement</p>
+
+  <div class="controls">
+    <button class="btn-run" id="btn-run" onclick="runTests()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Lancer les tests
+    </button>
+    <button class="btn-pdf" onclick="generateSamplePDFs()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Generer PDF exemples
+    </button>
+    <button class="btn-clear" onclick="clearResults()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      Effacer
+    </button>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress"></div>
+  </div>
+
+  <div class="status-bar">
+    <div class="stat stat-pass">
+      <div class="stat-value" id="pass-count">-</div>
+      <div class="stat-label">Reussis</div>
+    </div>
+    <div class="stat stat-fail">
+      <div class="stat-value" id="fail-count">-</div>
+      <div class="stat-label">Echoues</div>
+    </div>
+    <div class="stat stat-rate">
+      <div class="stat-value" id="success-rate">-</div>
+      <div class="stat-label">Taux</div>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="result-item" style="color: #6b7280; justify-content: center;">
+      Cliquez sur "Lancer les tests" pour commencer
+    </div>
+  </div>
+
+  <iframe id="test-frame" class="test-frame" src="index.html"></iframe>
+
+  <script>
+    const SVG_PASS = '<svg class="result-icon pass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+    const SVG_FAIL = '<svg class="result-icon fail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
+    const TEST_CONFIGS = [
+      { name: 'Hayon Rabattable', type: 'hayon-rabattable', ce: true, height: 1.2, client: 'Transport Dupont', immat: 'AB-123-CD' },
+      { name: 'Hayon Repliable', type: 'hayon-repliable', ce: true, height: 1.0, client: 'Logistique Martin', immat: 'EF-456-GH' },
+      { name: 'Hayon Gerbeur', type: 'hayon-gerbeur', ce: true, height: 2.0, client: 'Manutention Express', immat: 'IJ-789-KL' },
+      { name: 'Hayon Potence', type: 'hayon-potence', ce: false, height: 1.5, client: 'Cargo Plus', immat: 'MN-012-OP' },
+      { name: 'Hayon Lateral', type: 'hayon-lateral', ce: true, height: 1.8, client: 'Fret National', immat: 'QR-345-ST' },
+      { name: 'Table Fixe CE', type: 'table-fixe', ce: true, height: 0.8, client: 'Usine Bernard', immat: '' },
+      { name: 'Table Fixe Non-CE', type: 'table-fixe', ce: false, height: 1.0, client: 'Entrepot Central', immat: '' },
+      { name: 'Table Mobile CE', type: 'table-mobile', ce: true, height: 1.2, client: 'Industrie Leroy', immat: '' },
+      { name: 'Table Mobile + GC', type: 'table-mobile', ce: true, height: 2.5, client: 'Manufacture Simon', immat: '' },
+      { name: 'Hayon + Garde-corps', type: 'hayon-rabattable', ce: false, height: 1.8, client: 'Distribution Moreau', immat: 'UV-678-WX' }
+    ];
+
+    let testFrame;
+    let testDoc;
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function runTests() {
+      const btn = document.getElementById('btn-run');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Tests en cours...';
+
+      const resultsEl = document.getElementById('results');
+      resultsEl.innerHTML = '';
+
+      const progress = document.getElementById('progress');
+      let passCount = 0;
+      let failCount = 0;
+
+      testFrame = document.getElementById('test-frame');
+      await new Promise(resolve => {
+        if (testFrame.contentDocument.readyState === 'complete') {
+          resolve();
+        } else {
+          testFrame.onload = resolve;
+        }
+      });
+
+      testDoc = testFrame.contentDocument;
+      const testWin = testFrame.contentWindow;
+
+      for (let i = 0; i < TEST_CONFIGS.length; i++) {
+        const config = TEST_CONFIGS[i];
+        progress.style.width = `${((i + 1) / TEST_CONFIGS.length) * 100}%`;
+
+        testDoc.getElementById('type-equipement').value = '';
+        testDoc.querySelectorAll('.check-item').forEach(item => {
+          delete item.dataset.status;
+          item.className = 'check-item';
+        });
+
+        const typeSelect = testDoc.getElementById('type-equipement');
+        typeSelect.value = config.type;
+        typeSelect.dispatchEvent(new Event('change'));
+
+        const ceSelect = testDoc.getElementById('marquage-ce');
+        ceSelect.value = config.ce ? 'ce' : 'non-ce';
+        ceSelect.dispatchEvent(new Event('change'));
+
+        const heightInput = testDoc.getElementById('hauteur-levage');
+        heightInput.value = config.height;
+        heightInput.dispatchEvent(new Event('input'));
+
+        await sleep(100);
+
+        const tests = runConfigTests(config, testDoc, testWin);
+
+        tests.forEach(test => {
+          if (test.pass) passCount++;
+          else failCount++;
+
+          const div = document.createElement('div');
+          div.className = `result-item ${test.pass ? 'result-pass' : 'result-fail'}`;
+          div.innerHTML = `
+            ${test.pass ? SVG_PASS : SVG_FAIL}
+            <div class="result-message">
+              <div>${test.message}</div>
+              <div class="result-config">
+                <span class="config-badge">${config.name}</span>
+                <span class="config-badge">${config.ce ? 'CE' : 'Non-CE'}</span>
+                <span class="config-badge">H: ${config.height}m</span>
+              </div>
+            </div>
+          `;
+          resultsEl.appendChild(div);
+        });
+
+        document.getElementById('pass-count').textContent = passCount;
+        document.getElementById('fail-count').textContent = failCount;
+        document.getElementById('success-rate').textContent =
+          Math.round(passCount / (passCount + failCount) * 100) + '%';
+
+        await sleep(50);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Relancer les tests';
+    }
+
+    function runConfigTests(config, doc, win) {
+      const results = [];
+
+      const requiredCount = doc.querySelectorAll('.check-item.required').length;
+      results.push({
+        pass: requiredCount > 0,
+        message: `Questions obligatoires detectees: ${requiredCount}`
+      });
+
+      const isHayon = config.type.startsWith('hayon-');
+      const isTable = config.type.startsWith('table-');
+
+      if (isTable) {
+        const stabVisible = doc.getElementById('section-stabilisateurs')?.closest('.card')?.style.display !== 'none';
+        results.push({
+          pass: stabVisible,
+          message: 'Section Stabilisateurs visible pour table'
+        });
+      }
+
+      if (config.type === 'table-mobile') {
+        const chassisVisible = doc.getElementById('section-chassis')?.closest('.card')?.style.display !== 'none';
+        results.push({
+          pass: chassisVisible,
+          message: 'Section Chassis visible pour table mobile'
+        });
+      }
+
+      const gcVisible = doc.getElementById('section-garde-corps')?.closest('.card')?.style.display !== 'none';
+      const shouldShowGc = config.height > 1.6;
+      results.push({
+        pass: gcVisible === shouldShowGc,
+        message: shouldShowGc
+          ? 'Section Garde-corps visible (hauteur > 1.6m)'
+          : 'Section Garde-corps masquee (hauteur <= 1.6m)'
+      });
+
+      const ceBox = doc.getElementById('calc-box-ce');
+      const nonCeBox = doc.getElementById('calc-box-non-ce');
+      const ceVisible = ceBox && ceBox.style.display !== 'none';
+      const nonCeVisible = nonCeBox && nonCeBox.style.display !== 'none';
+      results.push({
+        pass: config.ce ? ceVisible : nonCeVisible,
+        message: config.ce
+          ? 'Coefficients CE affiches correctement'
+          : 'Coefficients Non-CE affiches correctement'
+      });
+
+      if (typeof win.validateRequiredQuestions === 'function') {
+        const validation = win.validateRequiredQuestions();
+        results.push({
+          pass: !validation.valid && validation.missing.length > 0,
+          message: `Validation echoue: ${validation.missing.length} questions non remplies`
+        });
+      }
+
+      return results;
+    }
+
+    function clearResults() {
+      document.getElementById('results').innerHTML = `
+        <div class="result-item" style="color: #6b7280; justify-content: center;">
+          Cliquez sur "Lancer les tests" pour commencer
+        </div>
+      `;
+      document.getElementById('pass-count').textContent = '-';
+      document.getElementById('fail-count').textContent = '-';
+      document.getElementById('success-rate').textContent = '-';
+      document.getElementById('progress').style.width = '0%';
+    }
+
+    async function generateSamplePDFs() {
+      testFrame = document.getElementById('test-frame');
+      await new Promise(resolve => {
+        if (testFrame.contentDocument.readyState === 'complete') {
+          resolve();
+        } else {
+          testFrame.onload = resolve;
+        }
+      });
+
+      testDoc = testFrame.contentDocument;
+      const testWin = testFrame.contentWindow;
+
+      // Generate 3 sample PDFs
+      const samples = [TEST_CONFIGS[0], TEST_CONFIGS[2], TEST_CONFIGS[7]];
+
+      for (const config of samples) {
+        await fillFormWithTestData(testDoc, testWin, config);
+        await sleep(200);
+
+        // Open PDF in new window
+        if (typeof testWin.generatePDF === 'function') {
+          testWin.generatePDF();
+        }
+
+        await sleep(500);
+      }
+
+      alert('3 PDF exemples generes!');
+    }
+
+    async function fillFormWithTestData(doc, win, config) {
+      // Reset
+      doc.getElementById('type-equipement').value = '';
+      doc.querySelectorAll('.check-item').forEach(item => {
+        delete item.dataset.status;
+        item.className = 'check-item';
+        item.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+      });
+
+      // Set basic info
+      doc.getElementById('type-equipement').value = config.type;
+      doc.getElementById('type-equipement').dispatchEvent(new Event('change'));
+
+      doc.getElementById('marquage-ce').value = config.ce ? 'ce' : 'non-ce';
+      doc.getElementById('marquage-ce').dispatchEvent(new Event('change'));
+
+      doc.getElementById('hauteur-levage').value = config.height;
+      doc.getElementById('hauteur-levage').dispatchEvent(new Event('input'));
+
+      doc.getElementById('client').value = config.client;
+      if (config.immat) doc.getElementById('immat').value = config.immat;
+      doc.getElementById('cmu').value = '1500';
+      doc.getElementById('cmu').dispatchEvent(new Event('input'));
+      doc.getElementById('charge-essai').value = '1650';
+
+      // Set marque
+      const marqueSelect = doc.getElementById('marque');
+      if (marqueSelect) marqueSelect.value = 'dhollandia';
+
+      doc.getElementById('num-serie').value = 'SN-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+
+      // Fill all required questions as Conforme
+      doc.querySelectorAll('.check-item.required').forEach(item => {
+        const section = item.closest('.card');
+        if (section && section.style.display !== 'none') {
+          item.dataset.status = 'c';
+          item.classList.add('status-c');
+          const btn = item.querySelector('.status-btn[data-status="c"]');
+          if (btn) btn.classList.add('active');
+        }
+      });
+
+      // Fill remaining as N/A or Conforme randomly
+      doc.querySelectorAll('.check-item:not(.required)').forEach(item => {
+        const section = item.closest('.card');
+        if (section && section.style.display !== 'none') {
+          const status = Math.random() > 0.3 ? 'c' : 'na';
+          item.dataset.status = status;
+          item.classList.add(`status-${status}`);
+          const btn = item.querySelector(`.status-btn[data-status="${status}"]`);
+          if (btn) btn.classList.add('active');
+        }
+      });
+
+      // Set conclusion
+      doc.getElementById('avis').value = 'conforme';
+      doc.getElementById('observations').value = 'Equipement en bon etat general. Aucune anomalie constatee.';
+
+      // Update all statuses
+      if (typeof win.updateAllSectionStatuses === 'function') {
+        win.updateAllSectionStatuses();
+      }
+
+      await sleep(100);
+    }
+  </script>
+</body>
+</html>

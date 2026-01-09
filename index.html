@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VGP Hayon - Inspection</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" id="theme-toggle" aria-label="Changer le thème">
+    <svg id="icon-sun" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg id="icon-moon" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+
+  <header>
+    <h1>VGP - Inspection</h1>
+    <p class="subtitle">Hayons & Tables Élévatrices</p>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="tabs-nav" id="tabs-nav">
+    <button class="tab-btn active" data-tab="infos">
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+      <span class="tab-label">Infos</span>
+    </button>
+    <button class="tab-btn" data-tab="documents">
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+      <span class="tab-label">Docs</span>
+      <span class="tab-status" id="tab-status-docs">0/6</span>
+    </button>
+    <button class="tab-btn" data-tab="controle">
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <span class="tab-label">Contrôle</span>
+      <span class="tab-status" id="tab-status-visuel">0/14</span>
+    </button>
+    <button class="tab-btn" data-tab="securite">
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+      <span class="tab-label">Sécurité</span>
+      <span class="tab-status" id="tab-status-securite">0/7</span>
+    </button>
+    <button class="tab-btn" data-tab="essais">
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      <span class="tab-label">Essais</span>
+      <span class="tab-status" id="tab-status-essais">0/4</span>
+    </button>
+    <button class="tab-btn" data-tab="conclusion">
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <span class="tab-label">Conclusion</span>
+    </button>
+  </nav>
+
+  <main>
+    <!-- TAB: Infos -->
+    <div class="tab-panel active" data-panel="infos">
+    <!-- Informations générales -->
+    <section class="card" id="info-section">
+      <h2>Informations Générales</h2>
+      <div class="form-group">
+        <label>Date d'inspection</label>
+        <input type="date" id="date-inspection">
+      </div>
+      <div class="form-group">
+        <label>Inspecteur</label>
+        <select id="inspecteur">
+          <option value="">-- Sélectionner --</option>
+          <option value="Jacky FEDE">Jacky FEDE</option>
+          <option value="autre">Autre...</option>
+        </select>
+      </div>
+      <div class="form-group" id="inspecteur-autre-group" style="display:none;">
+        <label>Nom de l'inspecteur</label>
+        <input type="text" id="inspecteur-autre" placeholder="Nom et prénom">
+      </div>
+
+      <!-- Type d'équipement -->
+      <div class="form-group">
+        <label>Type d'équipement</label>
+        <select id="type-equipement">
+          <option value="">-- Sélectionner --</option>
+          <optgroup label="Hayons élévateurs">
+            <option value="hayon-rabattable">Hayon rabattable (monobloc/déporté)</option>
+            <option value="hayon-repliable">Hayon repliable / rétractable</option>
+            <option value="hayon-gerbeur">Hayon gerbeur</option>
+            <option value="hayon-potence">Hayon sur potence</option>
+            <option value="hayon-lateral">Hayon latéral</option>
+          </optgroup>
+          <optgroup label="Tables élévatrices">
+            <option value="table-fixe">Table élévatrice fixe</option>
+            <option value="table-mobile">Table élévatrice mobile</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <!-- Marquage CE -->
+      <div class="form-group">
+        <label>Marquage CE</label>
+        <select id="marquage-ce">
+          <option value="ce">Oui - Appareil CE</option>
+          <option value="non-ce">Non - Appareil non CE</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Client</label>
+        <input type="text" id="client" placeholder="Nom du client">
+      </div>
+
+      <!-- Immatriculation (conditionnel - hayons uniquement) -->
+      <div class="form-group" id="immat-group">
+        <label>Immatriculation véhicule</label>
+        <input type="text" id="immat" placeholder="AB-123-CD" maxlength="9" autocapitalize="characters">
+      </div>
+
+      <div class="form-group">
+        <label>Marque équipement</label>
+        <select id="marque-hayon">
+          <option value="">-- Sélectionner --</option>
+          <option value="Dhollandia">Dhollandia</option>
+          <option value="Palfinger/MBB">Palfinger / MBB</option>
+          <option value="Bär Cargolift">Bär Cargolift</option>
+          <option value="Dautel">Dautel</option>
+          <option value="Zepro">Zepro</option>
+          <option value="Anteo">Anteo</option>
+          <option value="Sörensen">Sörensen</option>
+          <option value="Ratcliff">Ratcliff</option>
+          <option value="Behrens">Behrens</option>
+          <option value="Maxon">Maxon</option>
+          <option value="Waltco">Waltco</option>
+          <option value="Tommy Gate">Tommy Gate</option>
+          <option value="Del Equipment">Del Equipment</option>
+          <option value="Edmolift">Edmolift</option>
+          <option value="Bolzoni">Bolzoni</option>
+          <option value="Translyft">Translyft</option>
+          <option value="autre">Autre...</option>
+        </select>
+      </div>
+      <div class="form-group" id="marque-autre-group" style="display:none;">
+        <label>Précisez la marque</label>
+        <input type="text" id="marque-hayon-autre" placeholder="Nom du constructeur">
+      </div>
+      <div class="form-group">
+        <label>N° de série</label>
+        <input type="text" id="num-serie">
+      </div>
+      <div class="form-group">
+        <label>CMU (kg)</label>
+        <input type="number" id="cmu" placeholder="Charge Maximale Utile">
+      </div>
+
+      <!-- Hauteur de levage (pour déterminer garde-corps) -->
+      <div class="form-group">
+        <label>Hauteur de levage max (m)</label>
+        <input type="number" id="hauteur-levage" step="0.1" placeholder="ex: 1.5">
+        <small class="form-hint" id="hint-garde-corps" style="display:none;">⚠️ Hauteur > 1.6m : vérification garde-corps requise</small>
+      </div>
+
+      <div class="calc-box" id="calc-box-ce">
+        <p><strong>Coefficients CE :</strong></p>
+        <p>Charge essai dynamique (CMU × 1.1): <strong id="charge-dyn">-</strong> kg</p>
+        <p>Charge essai statique (CMU × 1.25): <strong id="charge-stat">-</strong> kg</p>
+      </div>
+      <div class="calc-box" id="calc-box-non-ce" style="display:none;">
+        <p><strong>Coefficients Non-CE :</strong></p>
+        <p>Charge essai dynamique (CMU × 1.2): <strong id="charge-dyn-nc">-</strong> kg</p>
+        <p>Charge essai statique (CMU × 1.5): <strong id="charge-stat-nc">-</strong> kg</p>
+      </div>
+    </section>
+
+    <!-- Photos Générales -->
+    <section class="card">
+      <h2>
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        Photos Générales
+        <span class="section-status" id="photos-count">0</span>
+      </h2>
+      <div class="photo-grid" id="photos-generales"></div>
+      <button type="button" class="btn btn-photo" onclick="captureGeneralPhoto()">
+        <span class="photo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </span>
+        <span class="photo-text">Ajouter une photo</span>
+        <span class="photo-hint">Plaque signalétique, vue d'ensemble...</span>
+      </button>
+      <input type="file" id="photo-input-general" accept="image/*" style="display:none">
+    </section>
+    <!-- Navigation -->
+    <div class="tab-nav-footer">
+      <button type="button" class="btn btn-nav-next" onclick="switchTab('documents')">
+        Suivant <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+    </div><!-- END TAB: Infos -->
+
+    <!-- TAB: Documents -->
+    <div class="tab-panel" data-panel="documents">
+    <!-- Section 1: Documents réglementaires -->
+    <section class="card">
+      <h2>
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documents Réglementaires
+        <span class="section-status" id="docs-status">0/6</span>
+      </h2>
+      <div class="section-content" id="docs">
+        <div class="check-item" data-id="docs-0" data-section="docs">
+          <div class="check-header">
+            <span class="item-label">Plaque signalétique lisible</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('docs-0')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="docs-1" data-section="docs">
+          <div class="check-header">
+            <span class="item-label">CMU / Abaque de charges présent</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('docs-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="docs-2" data-section="docs">
+          <div class="check-header">
+            <span class="item-label">Consignes de sécurité affichées</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('docs-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="docs-3" data-section="docs">
+          <div class="check-header">
+            <span class="item-label">Certificat CE disponible</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('docs-3')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="docs-4" data-section="docs">
+          <div class="check-header">
+            <span class="item-label">Notice d'utilisation présente</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('docs-4')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="docs-5" data-section="docs">
+          <div class="check-header">
+            <span class="item-label">Carnet de maintenance à jour</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('docs-5')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+      </div>
+    </section>
+    <!-- Navigation -->
+    <div class="tab-nav-footer">
+      <button type="button" class="btn btn-nav-prev" onclick="switchTab('infos')">
+        <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Retour
+      </button>
+      <button type="button" class="btn btn-nav-next" onclick="switchTab('controle')">
+        Suivant <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+    </div><!-- END TAB: Documents -->
+
+    <!-- TAB: Contrôle -->
+    <div class="tab-panel" data-panel="controle">
+    <!-- Section: Châssis porteur (tables mobiles) -->
+    <section class="card conditional-section" data-requires="table-mobile" id="section-chassis">
+      <h2 class="section-toggle" data-section="chassis">
+        <span class="toggle-icon">▼</span>
+        Châssis Porteur
+        <span class="section-status" id="chassis-status">0/4</span>
+      </h2>
+      <div class="section-content" id="chassis">
+        <div class="check-item" data-id="chassis-0" data-section="chassis">
+          <div class="check-header">
+            <span class="item-label">État général châssis (traverses, longerons)</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('chassis-0')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="chassis-1" data-section="chassis">
+          <div class="check-header">
+            <span class="item-label">Organes de roulement (roues, jantes, pneus)</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('chassis-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="chassis-2" data-section="chassis">
+          <div class="check-header">
+            <span class="item-label">Freins de service et de parking</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('chassis-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="chassis-3" data-section="chassis">
+          <div class="check-header">
+            <span class="item-label">Timon / système d'attelage</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('chassis-3')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Stabilisateurs (tables mobiles/fixes) -->
+    <section class="card conditional-section" data-requires="table-mobile,table-fixe" id="section-stabilisateurs">
+      <h2 class="section-toggle" data-section="stabilisateurs">
+        <span class="toggle-icon">▼</span>
+        Stabilisateurs
+        <span class="section-status" id="stabilisateurs-status">0/4</span>
+      </h2>
+      <div class="section-content" id="stabilisateurs">
+        <div class="check-item" data-id="stab-0" data-section="stabilisateurs">
+          <div class="check-header">
+            <span class="item-label">État général des stabilisateurs</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('stab-0')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="stab-1" data-section="stabilisateurs">
+          <div class="check-header">
+            <span class="item-label">Verrouillage hydraulique/mécanique</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('stab-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="stab-2" data-section="stabilisateurs">
+          <div class="check-header">
+            <span class="item-label">Semelles d'appui en bon état</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('stab-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="stab-3" data-section="stabilisateurs">
+          <div class="check-header">
+            <span class="item-label">Absence de jeux excessifs</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('stab-3')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Source d'énergie -->
+    <section class="card conditional-section" data-requires="table-mobile,table-fixe,hayon-gerbeur" id="section-energie">
+      <h2 class="section-toggle" data-section="energie">
+        <span class="toggle-icon">▼</span>
+        Source d'Énergie
+        <span class="section-status" id="energie-status">0/5</span>
+      </h2>
+      <div class="section-content" id="energie">
+        <div class="check-item" data-id="energie-0" data-section="energie">
+          <div class="check-header">
+            <span class="item-label">Dispositif de séparation générale</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('energie-0')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="energie-1" data-section="energie">
+          <div class="check-header">
+            <span class="item-label">État câbles électriques et connexions</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('energie-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="energie-2" data-section="energie">
+          <div class="check-header">
+            <span class="item-label">Protection contacts directs (fusibles)</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('energie-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="energie-3" data-section="energie">
+          <div class="check-header">
+            <span class="item-label">État batteries (absence de fuite)</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('energie-3')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="energie-4" data-section="energie">
+          <div class="check-header">
+            <span class="item-label">Groupe hydraulique (niveau huile, fuites)</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('energie-4')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Poste de conduite (gerbeurs, tables) -->
+    <section class="card conditional-section" data-requires="hayon-gerbeur,table-mobile" id="section-poste">
+      <h2 class="section-toggle" data-section="poste">
+        <span class="toggle-icon">▼</span>
+        Poste de Conduite
+        <span class="section-status" id="poste-status">0/4</span>
+      </h2>
+      <div class="section-content" id="poste">
+        <div class="check-item" data-id="poste-0" data-section="poste">
+          <div class="check-header">
+            <span class="item-label">Protège-tête / cabine (état, fixations)</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('poste-0')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="poste-1" data-section="poste">
+          <div class="check-header">
+            <span class="item-label">Visibilité depuis le poste</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('poste-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="poste-2" data-section="poste">
+          <div class="check-header">
+            <span class="item-label">Protection chute de hauteur opérateur</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('poste-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="poste-3" data-section="poste">
+          <div class="check-header">
+            <span class="item-label">Protection risques de cisaillement</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('poste-3')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Garde-corps (si hauteur > 1.6m) -->
+    <section class="card conditional-section" data-requires="hauteur-1.6" id="section-garde-corps">
+      <h2 class="section-toggle" data-section="garde-corps">
+        <span class="toggle-icon">▼</span>
+        Garde-corps (Hauteur > 1.6m)
+        <span class="section-status" id="garde-corps-status">0/3</span>
+      </h2>
+      <div class="section-content" id="garde-corps">
+        <div class="check-item" data-id="gc-0" data-section="garde-corps">
+          <div class="check-header">
+            <span class="item-label">Présence de garde-corps sur plateau</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('gc-0')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="gc-1" data-section="garde-corps">
+          <div class="check-header">
+            <span class="item-label">Fixations et état du garde-corps</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('gc-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="gc-2" data-section="garde-corps">
+          <div class="check-header">
+            <span class="item-label">Portillon d'accès fonctionnel</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('gc-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Contrôle Visuel -->
+    <section class="card">
+      <h2 class="section-toggle" data-section="visuel">
+        <span class="toggle-icon">▼</span>
+        2. Contrôle Visuel
+        <span class="section-status" id="visuel-status">0/14</span>
+      </h2>
+      <div class="section-content" id="visuel">
+        <h3>Structure</h3>
+        <div class="check-item" data-id="visuel-0" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Fixation châssis hayon - serrage boulons</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-0')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-1" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Sol antidérapant en bon état</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-2" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">État général (déformation, corrosion, fissures)</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-3" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Axes et arrêts d'axes conformes</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-3')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-4" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Traverse en bon état</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-4')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+
+        <h3>Hydraulique</h3>
+        <div class="check-item" data-id="visuel-5" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Flexibles sans fuite ni usure</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-5')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-6" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Vérins en bon état</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-6')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-7" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Verrouillage position route fonctionnel</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-7')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+
+        <h3>Poste de Commande</h3>
+        <div class="check-item" data-id="visuel-8" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Verrouillage boîtier poste bas</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-8')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-9" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Commande bi-manuelle conforme</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-9')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-10" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Identification des commandes lisible</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-10')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-11" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Sélecteur de commande fonctionnel</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-11')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-12" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Arrêt d'urgence accessible et fonctionnel</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-12')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="visuel-13" data-section="visuel">
+          <div class="check-header">
+            <span class="item-label">Retour au neutre automatique</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('visuel-13')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+      </div>
+    </section>
+    <!-- Navigation -->
+    <div class="tab-nav-footer">
+      <button type="button" class="btn btn-nav-prev" onclick="switchTab('documents')">
+        <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Retour
+      </button>
+      <button type="button" class="btn btn-nav-next" onclick="switchTab('securite')">
+        Suivant <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+    </div><!-- END TAB: Contrôle -->
+
+    <!-- TAB: Sécurité -->
+    <div class="tab-panel" data-panel="securite">
+    <!-- Section 3: Dispositifs de Sécurité -->
+    <section class="card">
+      <h2>
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Dispositifs de Sécurité
+        <span class="section-status" id="securite-status">0/7</span>
+      </h2>
+      <div class="section-content" id="securite">
+        <div class="check-item" data-id="securite-0" data-section="securite">
+          <div class="check-header">
+            <span class="item-label">Limiteur de charge 110% fonctionnel</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('securite-0')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="securite-1" data-section="securite">
+          <div class="check-header">
+            <span class="item-label">Limiteur de débit (vitesse descente ≤ 0.15m/s)</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('securite-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="securite-2" data-section="securite">
+          <div class="check-header">
+            <span class="item-label">Freinage vertical conforme (≤ 10 cm)</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('securite-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="securite-3" data-section="securite">
+          <div class="check-header">
+            <span class="item-label">Stop palette présent et fonctionnel</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('securite-3')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="securite-4" data-section="securite">
+          <div class="check-header">
+            <span class="item-label">Drapeaux de signalisation présents</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('securite-4')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="securite-5" data-section="securite">
+          <div class="check-header">
+            <span class="item-label">Bandes réfléchissantes conformes</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('securite-5')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="securite-6" data-section="securite">
+          <div class="check-header">
+            <span class="item-label">Feux à éclats fonctionnels</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('securite-6')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+      </div>
+    </section>
+    <!-- Navigation -->
+    <div class="tab-nav-footer">
+      <button type="button" class="btn btn-nav-prev" onclick="switchTab('controle')">
+        <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Retour
+      </button>
+      <button type="button" class="btn btn-nav-next" onclick="switchTab('essais')">
+        Suivant <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+    </div><!-- END TAB: Sécurité -->
+
+    <!-- TAB: Essais -->
+    <div class="tab-panel" data-panel="essais">
+    <!-- Section 4: Essais de Fonctionnement -->
+    <section class="card">
+      <h2>
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Essais de Fonctionnement
+        <span class="section-status" id="essais-status">0/4</span>
+      </h2>
+      <div class="section-content" id="essais">
+        <div class="info-box">
+          <p><strong>Épreuve Dynamique:</strong> CMU × 1.1 = <span class="charge-dyn-val">-</span> kg</p>
+          <p><strong>Épreuve Statique:</strong> CMU × 1.25 = <span class="charge-stat-val">-</span> kg pendant 1h</p>
+        </div>
+
+        <div class="form-group">
+          <label>Charge d'essai utilisée (kg)</label>
+          <input type="number" id="charge-essai" placeholder="Charge réelle utilisée">
+        </div>
+
+        <div class="check-item" data-id="essais-0" data-section="essais">
+          <div class="check-header">
+            <span class="item-label">Tous les mouvements fonctionnels</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('essais-0')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="essais-1" data-section="essais">
+          <div class="check-header">
+            <span class="item-label">Épreuve dynamique (coef 1.1) - OK</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('essais-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="essais-2" data-section="essais">
+          <div class="check-header">
+            <span class="item-label">Épreuve statique 1h (coef 1.25) - OK</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('essais-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Observation">
+          <div class="photo-thumbs"></div>
+        </div>
+        <div class="check-item" data-id="essais-3" data-section="essais">
+          <div class="check-header">
+            <span class="item-label">Maintien de charge 10min - descente ≤ 10cm</span>
+            <button type="button" class="btn-cam" onclick="capturePhoto('essais-3')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          </div>
+          <div class="status-selector">
+            <button type="button" class="status-btn" data-status="c">Conforme</button>
+            <button type="button" class="status-btn" data-status="nc">Non conf.</button>
+            <button type="button" class="status-btn" data-status="na">N/A</button>
+          </div>
+          <input type="text" class="note" placeholder="Mesure: ___ cm">
+          <div class="photo-thumbs"></div>
+        </div>
+      </div>
+    </section>
+    <!-- Navigation -->
+    <div class="tab-nav-footer">
+      <button type="button" class="btn btn-nav-prev" onclick="switchTab('securite')">
+        <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Retour
+      </button>
+      <button type="button" class="btn btn-nav-next" onclick="switchTab('conclusion')">
+        Suivant <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+    </div><!-- END TAB: Essais -->
+
+    <!-- TAB: Conclusion -->
+    <div class="tab-panel" data-panel="conclusion">
+    <!-- Conclusion -->
+    <section class="card" id="conclusion-section">
+      <h2>
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Conclusion
+      </h2>
+      <div class="form-group">
+        <label>Avis de l'inspecteur</label>
+        <select id="avis">
+          <option value="">-- Sélectionner --</option>
+          <option value="conforme">CONFORME - Utilisation autorisée</option>
+          <option value="reserve">CONFORME AVEC RÉSERVES</option>
+          <option value="non-conforme">NON CONFORME - Mise hors service</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Observations générales</label>
+        <textarea id="observations" rows="4" placeholder="Remarques, travaux à prévoir..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Prochaine VGP</label>
+        <input type="date" id="prochaine-vgp">
+      </div>
+    </section>
+
+    <!-- Navigation -->
+    <div class="tab-nav-footer">
+      <button type="button" class="btn btn-nav-prev" onclick="switchTab('essais')">
+        <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Retour
+      </button>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button id="btn-save" class="btn btn-primary">Sauvegarder</button>
+      <button id="btn-pdf" class="btn btn-secondary">Générer PDF</button>
+      <button id="btn-new" class="btn btn-outline">Nouvelle inspection</button>
+    </div>
+
+    <!-- Liste des inspections -->
+    <section class="card" id="historique-section">
+      <h2>
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Historique des inspections
+      </h2>
+      <div id="liste-inspections"></div>
+    </section>
+    </div><!-- END TAB: Conclusion -->
+  </main>
+
+  <!-- Photo Input (hidden) -->
+  <input type="file" id="photo-input" accept="image/*" style="display:none">
+
+  <!-- Photo Lightbox -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <img id="lightbox-img" src="" alt="Photo agrandie">
+    <button class="lightbox-close" onclick="closeLightbox()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <button class="lightbox-delete" onclick="deleteLightboxPhoto(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      Supprimer
+    </button>
+  </div>
+
+  <footer>
+    <p>VGP Hayon v1.0 - Design FleetZen</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
