@@ -1,18 +1,46 @@
 {
-  "name": "VGP Hayon - Inspection",
-  "short_name": "VGP Hayon",
-  "description": "Application d'inspection VGP pour hayons élévateurs VMS/VRS",
+  "name": "VGP Inspect",
+  "short_name": "VGP",
+  "description": "Inspection VGP pour hayons et tables élévatrices",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F5F4F0",
+  "background_color": "#0F1114",
   "theme_color": "#0f766e",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "fr-FR",
+  "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230f766e' width='100' height='100' rx='20'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='%23ffffff'>VGP</text></svg>",
+      "src": "icons/icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nouvelle inspection",
+      "short_name": "Nouveau",
+      "url": "/?action=new",
+      "icons": [{ "src": "icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
     }
   ]
 }
