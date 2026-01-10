@@ -2176,8 +2176,234 @@ function loadSignatureData(dataUrl) {
   img.src = dataUrl;
 }
 
+// ========== CLOUD SYNC (Magic Link Auth) ==========
+
+const CLOUD_API_URL = 'https://vgp-api.hzukic.workers.dev';
+
+// Check for auth token in URL (from magic link redirect)
+(function checkAuthRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const authToken = params.get('auth_token');
+  const authEmail = params.get('auth_email');
+
+  if (authToken && authEmail) {
+    // Save to localStorage
+    localStorage.setItem('vgp-session', authToken);
+    localStorage.setItem('vgp-email', authEmail);
+
+    // Clean URL (remove auth params)
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+
+    // Show success message after page loads
+    setTimeout(() => showToast('Connecté !'), 500);
+  }
+})();
+
+// Sync status
+let isSyncing = false;
+let lastSyncTime = localStorage.getItem('vgp-last-sync') || null;
+
+// Check if user is logged in
+function isLoggedIn() {
+  return !!localStorage.getItem('vgp-session');
+}
+
+function getSessionToken() {
+  return localStorage.getItem('vgp-session');
+}
+
+function getUserEmail() {
+  return localStorage.getItem('vgp-email');
+}
+
+// Logout
+function cloudLogout() {
+  localStorage.removeItem('vgp-session');
+  localStorage.removeItem('vgp-email');
+  localStorage.removeItem('vgp-last-sync');
+  updateCloudStatus();
+  showToast('Déconnecté');
+}
+
+// Cloud settings - show login form
+function openCloudSettings() {
+  if (isLoggedIn()) {
+    // Already logged in - offer logout
+    if (confirm(`Connecté en tant que ${getUserEmail()}\n\nVoulez-vous vous déconnecter ?`)) {
+      cloudLogout();
+    }
+    return;
+  }
+
+  // Ask for email
+  const email = prompt('Entrez votre email pour recevoir un lien de connexion:');
+  if (!email || !email.includes('@')) {
+    if (email !== null) showToast('Email invalide');
+    return;
+  }
+
+  requestMagicLink(email);
+}
+
+// Request magic link
+async function requestMagicLink(email) {
+  const statusEl = document.getElementById('cloud-status');
+  if (statusEl) statusEl.textContent = 'Envoi du lien...';
+
+  try {
+    const response = await fetch(`${CLOUD_API_URL}/api/auth/request-link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      showToast('Email envoyé ! Vérifiez votre boîte mail.');
+      if (statusEl) statusEl.textContent = 'Email envoyé - Vérifiez votre boîte mail';
+    } else {
+      throw new Error(data.error || 'Erreur');
+    }
+  } catch (err) {
+    console.error('Magic link error:', err);
+    showToast('Erreur: ' + err.message);
+    updateCloudStatus();
+  }
+}
+
+// Update cloud status display
+function updateCloudStatus() {
+  const statusEl = document.getElementById('cloud-status');
+  const configBtn = document.querySelector('#cloud-section .btn-primary');
+  const syncBtn = document.getElementById('btn-sync');
+  if (!statusEl) return;
+
+  if (isLoggedIn()) {
+    const email = getUserEmail();
+    const lastSync = localStorage.getItem('vgp-last-sync');
+
+    statusEl.classList.add('configured');
+    if (lastSync) {
+      const date = new Date(lastSync);
+      statusEl.textContent = `${email} - Sync: ${date.toLocaleDateString('fr-FR')} ${date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}`;
+    } else {
+      statusEl.textContent = `${email} - Jamais synchronisé`;
+    }
+    if (configBtn) configBtn.textContent = 'Compte';
+    if (syncBtn) syncBtn.classList.remove('disabled');
+  } else {
+    statusEl.classList.remove('configured');
+    statusEl.textContent = 'Non connecté';
+    if (configBtn) configBtn.textContent = 'Se connecter';
+    if (syncBtn) syncBtn.classList.add('disabled');
+  }
+}
+
+// Alias for backward compatibility
+function updateSyncButton() {
+  updateCloudStatus();
+}
+
+// Sync with cloud
+async function syncWithCloud() {
+  if (!isLoggedIn()) {
+    openCloudSettings();
+    return;
+  }
+
+  if (isSyncing) return;
+
+  isSyncing = true;
+  const btn = document.getElementById('btn-sync');
+  if (btn) btn.classList.add('syncing');
+
+  const token = getSessionToken();
+
+  try {
+    // Get local inspections
+    const localInspections = JSON.parse(localStorage.getItem('vgp-inspections') || '[]');
+
+    // Check what needs syncing
+    const syncResponse = await fetch(`${CLOUD_API_URL}/api/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        lastSync: lastSyncTime,
+        localData: localInspections.map(i => ({ id: i.id, updatedAt: i.updatedAt }))
+      })
+    });
+
+    if (syncResponse.status === 401) {
+      // Session expired
+      cloudLogout();
+      showToast('Session expirée - Reconnectez-vous');
+      return;
+    }
+
+    if (!syncResponse.ok) throw new Error('Sync check failed');
+
+    const { toUpload, toDownload } = await syncResponse.json();
+
+    // Upload local changes
+    for (const id of toUpload) {
+      const inspection = localInspections.find(i => i.id === id);
+      if (inspection) {
+        await fetch(`${CLOUD_API_URL}/api/inspections`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(inspection)
+        });
+      }
+    }
+
+    // Download server changes
+    for (const id of toDownload) {
+      const response = await fetch(`${CLOUD_API_URL}/api/inspections/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const serverInspection = await response.json();
+        const index = localInspections.findIndex(i => i.id === id);
+        if (index >= 0) {
+          localInspections[index] = serverInspection;
+        } else {
+          localInspections.unshift(serverInspection);
+        }
+      }
+    }
+
+    // Save updated local data
+    localStorage.setItem('vgp-inspections', JSON.stringify(localInspections));
+    lastSyncTime = new Date().toISOString();
+    localStorage.setItem('vgp-last-sync', lastSyncTime);
+
+    // Refresh UI
+    loadInspectionsList();
+    updateCloudStatus();
+
+    const total = toUpload.length + toDownload.length;
+    showToast(total > 0 ? `Sync: ${total} inspection(s)` : 'Déjà à jour');
+
+  } catch (err) {
+    console.error('Sync error:', err);
+    showToast('Erreur de sync');
+  } finally {
+    isSyncing = false;
+    if (btn) btn.classList.remove('syncing');
+  }
+}
+
 // ========== INITIALIZE ==========
 
+updateCloudStatus();
 loadInspectionsList();
 
 // Load current inspection if exists

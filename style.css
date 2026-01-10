@@ -805,6 +805,94 @@ footer {
   font-size: 0.8125rem;
 }
 
+/* Section Header Row */
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.section-header-row h2 {
+  margin-bottom: 0;
+}
+
+/* Cloud Actions */
+.cloud-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-icon:hover {
+  border-color: var(--fleetzen-teal);
+  color: var(--fleetzen-teal);
+}
+
+.btn-icon.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-icon.syncing svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Cloud Section */
+.cloud-status {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+.cloud-status.configured {
+  color: var(--success);
+}
+
+.cloud-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cloud-buttons .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cloud-buttons .btn svg {
+  flex-shrink: 0;
+}
+
+#btn-sync.syncing svg {
+  animation: spin 1s linear infinite;
+}
+
 /* Toast Notification */
 .toast {
   position: fixed;

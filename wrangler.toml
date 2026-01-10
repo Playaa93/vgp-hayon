@@ -1,0 +1,10 @@
+name = "vgp-api"
+main = "worker/index.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "VGP_DATA"
+id = "2b46b64a5c9343098f844406fc2e3eae"
+
+[vars]
+CORS_ORIGIN = "*"
