@@ -1264,6 +1264,12 @@ function generatePDF() {
           height: 35px;
           margin-top: 5px;
         }
+        .signature-img {
+          max-width: 100%;
+          max-height: 45px;
+          margin-top: 5px;
+          object-fit: contain;
+        }
 
         /* Stamp placeholder */
         .stamp-box {
@@ -1507,7 +1513,7 @@ function generatePDF() {
             ${data.inspecteur || '−'}<br>
             Le ${formatDateFR(data.dateInspection)}
           </div>
-          <div class="signature-line"></div>
+          ${data.signature ? `<img class="signature-img" src="${data.signature}" alt="Signature">` : '<div class="signature-line"></div>'}
         </div>
         <div class="signature-box">
           <div class="signature-label">Client / Représentant</div>
@@ -2033,6 +2039,7 @@ const originalCollectFormData = collectFormData;
 collectFormData = function() {
   const data = originalCollectFormData();
   data.photos = photos;
+  data.signature = getSignatureData();
   return data;
 };
 
@@ -2053,8 +2060,121 @@ loadInspection = function(id) {
     updatePhotoCount();
   }
 
+  // Load signature
+  if (inspection && inspection.signature) {
+    loadSignatureData(inspection.signature);
+  } else {
+    clearSignature();
+  }
+
   originalLoadInspection(id);
 };
+
+// ========== SIGNATURE ==========
+
+const signatureCanvas = document.getElementById('signature-canvas');
+const signatureContainer = signatureCanvas.parentElement;
+const signaturePlaceholder = document.getElementById('signature-placeholder');
+const signatureCtx = signatureCanvas.getContext('2d');
+
+let isDrawing = false;
+let hasSignature = false;
+
+// Set canvas size
+function resizeSignatureCanvas() {
+  const rect = signatureContainer.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  signatureCanvas.width = rect.width * dpr;
+  signatureCanvas.height = rect.height * dpr;
+  signatureCtx.scale(dpr, dpr);
+  signatureCtx.lineCap = 'round';
+  signatureCtx.lineJoin = 'round';
+  signatureCtx.lineWidth = 2.5;
+  signatureCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim() || '#000';
+}
+
+// Initialize
+resizeSignatureCanvas();
+window.addEventListener('resize', resizeSignatureCanvas);
+
+// Get position from event
+function getSignaturePos(e) {
+  const rect = signatureCanvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top
+  };
+}
+
+// Drawing handlers
+function startDrawing(e) {
+  e.preventDefault();
+  isDrawing = true;
+  signatureContainer.classList.add('active');
+  const pos = getSignaturePos(e);
+  signatureCtx.beginPath();
+  signatureCtx.moveTo(pos.x, pos.y);
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  e.preventDefault();
+  const pos = getSignaturePos(e);
+  signatureCtx.lineTo(pos.x, pos.y);
+  signatureCtx.stroke();
+  if (!hasSignature) {
+    hasSignature = true;
+    signatureContainer.classList.add('has-signature');
+  }
+}
+
+function stopDrawing() {
+  if (isDrawing) {
+    isDrawing = false;
+    signatureContainer.classList.remove('active');
+    signatureCtx.closePath();
+  }
+}
+
+// Event listeners
+signatureCanvas.addEventListener('mousedown', startDrawing);
+signatureCanvas.addEventListener('mousemove', draw);
+signatureCanvas.addEventListener('mouseup', stopDrawing);
+signatureCanvas.addEventListener('mouseleave', stopDrawing);
+
+signatureCanvas.addEventListener('touchstart', startDrawing, { passive: false });
+signatureCanvas.addEventListener('touchmove', draw, { passive: false });
+signatureCanvas.addEventListener('touchend', stopDrawing);
+
+// Clear signature
+function clearSignature() {
+  const rect = signatureContainer.getBoundingClientRect();
+  signatureCtx.clearRect(0, 0, rect.width, rect.height);
+  hasSignature = false;
+  signatureContainer.classList.remove('has-signature');
+}
+
+// Get signature as base64
+function getSignatureData() {
+  if (!hasSignature) return null;
+  return signatureCanvas.toDataURL('image/png');
+}
+
+// Load signature from base64
+function loadSignatureData(dataUrl) {
+  if (!dataUrl) return;
+  const img = new Image();
+  img.onload = () => {
+    resizeSignatureCanvas();
+    const rect = signatureContainer.getBoundingClientRect();
+    signatureCtx.drawImage(img, 0, 0, rect.width, rect.height);
+    hasSignature = true;
+    signatureContainer.classList.add('has-signature');
+  };
+  img.src = dataUrl;
+}
 
 // ========== INITIALIZE ==========
 
