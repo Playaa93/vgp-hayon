@@ -994,91 +994,252 @@ async function generatePDFBase64(data) {
   return pdfOutput.split(',')[1];
 }
 
-// Generate HTML for PDF rendering (simplified for canvas capture)
+// Generate HTML for PDF rendering - USES SAME TEMPLATE AS generatePDF()
 function generateReportHTMLForPDF(data) {
   const isCe = data.marquageCe === 'ce';
   const dynCoef = isCe ? 1.1 : 1.2;
   const statCoef = isCe ? 1.25 : 1.5;
   const year = new Date(data.dateInspection).getFullYear();
   const reportNum = `VGP-${year}-${data.id.slice(-4).padStart(4, '0')}`;
-  const generatedAt = new Date().toLocaleString('fr-FR');
+  const generatedAt = new Date().toLocaleString('fr-FR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
   const ncCount = countNonConformities(data.sections);
+  const photoHTML = generatePhotosHTML(data.photos);
 
   return `
-    <div style="font-family: Arial, sans-serif; padding: 30px; color: #333; font-size: 14px;">
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 9px; line-height: 1.35; color: #1a1a1a; background: white; padding: 10px;">
       <!-- Header -->
-      <div style="background: #1e3a5f; color: white; padding: 25px; text-align: center; margin-bottom: 25px;">
-        <h1 style="margin: 0; font-size: 22px;">RAPPORT DE VÉRIFICATION GÉNÉRALE PÉRIODIQUE</h1>
-        <p style="margin: 8px 0 0 0; opacity: 0.9;">N° ${reportNum} - ${getEquipmentTypeLabel(data.typeEquipement)}</p>
+      <div style="border: 2px solid #1e3a5f; margin-bottom: 10px;">
+        <div style="display: flex; border-bottom: 1px solid #e2e8f0;">
+          <div style="flex: 1; padding: 8px 10px; border-right: 1px solid #e2e8f0;">
+            <div style="font-size: 13px; font-weight: 700; color: #1e3a5f;">FLEETZEN</div>
+            <div style="font-size: 8px; color: #4a5568; margin-top: 3px;">Organisme de contrôle technique<br>Vérifications réglementaires des équipements de travail</div>
+          </div>
+          <div style="width: 140px; padding: 8px 10px; background: #f8fafc;">
+            <div style="font-size: 11px; font-weight: 700; color: #1e3a5f;">N° ${reportNum}</div>
+            <div style="font-size: 7px; color: #718096; margin-top: 2px;">Généré le ${generatedAt}</div>
+          </div>
+        </div>
+        <div style="text-align: center; padding: 10px; background: #1e3a5f; color: white;">
+          <div style="font-size: 12px; font-weight: 700; letter-spacing: 1px;">RAPPORT DE VÉRIFICATION GÉNÉRALE PÉRIODIQUE</div>
+          <div style="font-size: 9px; opacity: 0.9;">Appareil de levage − ${getEquipmentTypeLabel(data.typeEquipement)}</div>
+        </div>
+        <div style="padding: 6px 10px; background: #f1f5f9; font-size: 7px; color: #64748b; text-align: center;">
+          Conformément à l'Arrêté du 1er mars 2004 relatif aux vérifications des appareils et accessoires de levage − Articles R.4323-23 à R.4323-27 du Code du Travail
+        </div>
       </div>
 
       <!-- Info Grid -->
-      <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
         <div style="flex: 1;">
-          <div style="background: #1e3a5f; color: white; padding: 10px 15px; font-weight: bold;">ÉQUIPEMENT</div>
-          <div style="border: 1px solid #ddd; border-top: none; padding: 15px;">
-            <p style="margin: 8px 0;"><strong>Type:</strong> ${getEquipmentTypeLabel(data.typeEquipement)}</p>
-            <p style="margin: 8px 0;"><strong>Marque:</strong> ${data.marqueHayon || '−'}</p>
-            <p style="margin: 8px 0;"><strong>N° série:</strong> ${data.numSerie || '−'}</p>
-            <p style="margin: 8px 0;"><strong>Immat:</strong> ${data.immat || 'N/A'}</p>
-            <p style="margin: 8px 0;"><strong>CMU:</strong> ${data.cmu || '−'} kg</p>
-          </div>
+          <div style="font-size: 9px; font-weight: 700; color: white; background: #1e3a5f; padding: 4px 8px;">IDENTIFICATION DE L'APPAREIL</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600; width: 35%;">Type d'équipement</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;">${getEquipmentTypeLabel(data.typeEquipement)}</td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Marque / Modèle</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;">${(data.marqueHayon || '−').toUpperCase()}</td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">N° de série</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;"><strong>${data.numSerie || '−'}</strong></td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Immatriculation</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;">${data.immat || 'N/A'}</td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Marquage CE</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;">${isCe ? 'OUI' : 'NON'}</td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">CMU</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;"><strong>${data.cmu || '−'} kg</strong></td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Hauteur levage</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;">${data.hauteurLevage || '−'} m</td></tr>
+          </table>
         </div>
         <div style="flex: 1;">
-          <div style="background: #1e3a5f; color: white; padding: 10px 15px; font-weight: bold;">INTERVENTION</div>
-          <div style="border: 1px solid #ddd; border-top: none; padding: 15px;">
-            <p style="margin: 8px 0;"><strong>Client:</strong> ${data.client || '−'}</p>
-            <p style="margin: 8px 0;"><strong>Date:</strong> ${formatDateFR(data.dateInspection)}</p>
-            <p style="margin: 8px 0;"><strong>Inspecteur:</strong> ${data.inspecteur || '−'}</p>
-            <p style="margin: 8px 0;"><strong>Charge essai:</strong> ${data.chargeEssai || '−'} kg</p>
-            <p style="margin: 8px 0;"><strong>Prochaine VGP:</strong> ${formatDateFR(data.prochaineVgp)}</p>
-          </div>
+          <div style="font-size: 9px; font-weight: 700; color: white; background: #1e3a5f; padding: 4px 8px;">INTERVENTION</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600; width: 35%;">Client / Propriétaire</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;"><strong>${data.client || '−'}</strong></td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Date d'inspection</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;"><strong>${formatDateFR(data.dateInspection)}</strong></td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Inspecteur</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;">${data.inspecteur || '−'}</td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Charge d'essai</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;">${data.chargeEssai || '−'} kg</td></tr>
+            <tr><td style="padding: 3px 6px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Prochaine VGP</td><td style="padding: 3px 6px; border: 1px solid #d1d5db;"><strong>${formatDateFR(data.prochaineVgp)}</strong></td></tr>
+          </table>
         </div>
       </div>
 
       <!-- Charges -->
-      <div style="background: #eff6ff; border: 1px solid #93c5fd; padding: 15px; margin-bottom: 25px; text-align: center;">
-        <strong style="color: #1e40af;">CHARGES D'ÉPREUVE (${isCe ? 'CE' : 'Non CE'})</strong>
-        <div style="display: flex; justify-content: center; gap: 40px; margin-top: 10px;">
-          <div><span style="color: #666;">CMU:</span> <strong>${data.cmu || '−'} kg</strong></div>
-          <div><span style="color: #666;">Dynamique (×${dynCoef}):</span> <strong>${Math.round((data.cmu || 0) * dynCoef)} kg</strong></div>
-          <div><span style="color: #666;">Statique (×${statCoef}):</span> <strong>${Math.round((data.cmu || 0) * statCoef)} kg</strong></div>
+      <div style="background: #eff6ff; border: 1px solid #93c5fd; padding: 8px; margin-bottom: 8px;">
+        <div style="font-size: 9px; font-weight: 700; color: #1e40af; margin-bottom: 5px; text-align: center;">CHARGES D'ÉPREUVE RÉGLEMENTAIRES (${isCe ? 'Appareil CE' : 'Appareil non CE'})</div>
+        <div style="display: flex; gap: 8px;">
+          <div style="flex: 1; background: white; border: 1px solid #bfdbfe; padding: 6px; text-align: center;">
+            <div style="font-size: 7px; color: #64748b;">CMU Nominale</div>
+            <div style="font-size: 11px; font-weight: 700; color: #1e40af;">${data.cmu || '−'} kg</div>
+          </div>
+          <div style="flex: 1; background: white; border: 1px solid #bfdbfe; padding: 6px; text-align: center;">
+            <div style="font-size: 7px; color: #64748b;">Épreuve Dynamique</div>
+            <div style="font-size: 11px; font-weight: 700; color: #1e40af;">${Math.round((data.cmu || 0) * dynCoef)} kg</div>
+            <div style="font-size: 7px; color: #94a3b8;">CMU × ${dynCoef}</div>
+          </div>
+          <div style="flex: 1; background: white; border: 1px solid #bfdbfe; padding: 6px; text-align: center;">
+            <div style="font-size: 7px; color: #64748b;">Épreuve Statique</div>
+            <div style="font-size: 11px; font-weight: 700; color: #1e40af;">${Math.round((data.cmu || 0) * statCoef)} kg</div>
+            <div style="font-size: 7px; color: #94a3b8;">CMU × ${statCoef}</div>
+          </div>
         </div>
       </div>
 
-      <!-- Verdict -->
-      <div style="text-align: center; padding: 25px; margin: 25px 0; font-size: 20px; font-weight: bold; border: 3px solid ${data.avis === 'conforme' ? '#1a5c38' : data.avis === 'reserve' ? '#8b6914' : '#8b1a1a'}; border-radius: 10px; background: ${data.avis === 'conforme' ? '#f0fdf4' : data.avis === 'reserve' ? '#fffbeb' : '#fef2f2'}; color: ${data.avis === 'conforme' ? '#1a5c38' : data.avis === 'reserve' ? '#8b6914' : '#8b1a1a'};">
-        ${getAvisTextFormal(data.avis)}
+      <!-- Legend -->
+      <div style="display: flex; gap: 12px; font-size: 7px; color: #374151; margin: 6px 0; padding: 4px 8px; background: #f9fafb; border: 1px solid #e5e7eb; justify-content: center;">
+        <span><span style="color: #1a5c38; font-weight: 700; font-size: 12px;">✔</span> Conforme</span>
+        <span><span style="color: #d97706; font-weight: 700; font-size: 12px;">⚠</span> NC (réserve)</span>
+        <span><span style="color: #8b1a1a; font-weight: 700; font-size: 12px;">✘</span> NC (arrêt)</span>
+        <span><span style="color: #000; font-weight: 700; font-size: 12px;">—</span> N/A</span>
       </div>
 
-      ${ncCount > 0 ? `
-      <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 20px 0;">
-        <strong style="color: #991b1b;">Non-conformités (${ncCount}):</strong>
-        <div style="margin-top: 10px;">${generateNCList(data.sections)}</div>
-      </div>
-      ` : ''}
+      <!-- Control Sections -->
+      ${generateCheckSectionHTML("1. EXAMEN D'ADEQUATION ET DOCUMENTAIRE", "Art. 5", data.sections.docs, [
+        'Plaque signalétique lisible et complète',
+        'CMU / Abaque de charges présent et lisible',
+        'Consignes de sécurité affichées',
+        'Certificat de conformité CE disponible',
+        'Notice d\'utilisation présente',
+        'Carnet de maintenance à jour'
+      ])}
 
-      ${data.observations ? `
-      <div style="margin: 20px 0;">
-        <div style="background: #1e3a5f; color: white; padding: 10px 15px; font-weight: bold;">OBSERVATIONS</div>
-        <div style="border: 1px solid #ddd; border-top: none; padding: 15px;">${data.observations}</div>
-      </div>
-      ` : ''}
+      ${generateCheckSectionHTML("2. EXAMEN DE L'ÉTAT DE CONSERVATION", "Art. 9", data.sections.visuel, [
+        'Fixation châssis − serrage et état des boulons',
+        'Revêtement sol antidérapant',
+        'État général structure (déformation, corrosion, fissures)',
+        'Axes et arrêts d\'axes',
+        'Traverse et articulations',
+        'Flexibles hydrauliques (fuite, usure)',
+        'Vérins hydrauliques (fuite, état)',
+        'Verrouillage position route',
+        'Verrouillage boîtier poste bas',
+        'Commande bi-manuelle conforme',
+        'Identification des commandes',
+        'Sélecteur de commande',
+        'Arrêt d\'urgence',
+        'Retour au neutre automatique'
+      ])}
 
-      <!-- Signature -->
-      ${data.signature ? `
-      <div style="margin: 25px 0;">
-        <strong>Signature inspecteur:</strong>
-        <div style="margin-top: 10px;"><img src="${data.signature}" style="max-width: 200px; max-height: 80px;" /></div>
+      ${generateCheckSectionHTML("3. DISPOSITIFS DE SÉCURITÉ", "Art. 9", data.sections.securite, [
+        'Limiteur de charge (déclenchement ≤ 110% CMU)',
+        'Limiteur de débit (vitesse descente ≤ 0,15 m/s)',
+        'Freinage vertical (descente ≤ 10 cm)',
+        'Stop palette / butée de charge',
+        'Drapeaux de signalisation',
+        'Bandes réfléchissantes',
+        'Feux à éclats / gyrophare'
+      ])}
+
+      ${generateCheckSectionHTML("4. ESSAIS DE FONCTIONNEMENT ET ÉPREUVES", "Art. 10-11", data.sections.essais, [
+        'Essai des mouvements (montée, descente, inclinaison)',
+        'Épreuve dynamique − charge ' + Math.round((data.cmu || 0) * dynCoef) + ' kg',
+        'Épreuve statique 1h − charge ' + Math.round((data.cmu || 0) * statCoef) + ' kg',
+        'Maintien de charge 10 min (descente ≤ 10 cm)'
+      ])}
+
+      <!-- Conclusion -->
+      <div style="border: 2px solid #1e3a5f; margin-top: 10px;">
+        <div style="background: #1e3a5f; color: white; padding: 6px 10px; font-size: 10px; font-weight: 700;">CONCLUSION DE LA VÉRIFICATION</div>
+        <div style="padding: 10px;">
+          <div style="text-align: center; padding: 10px; margin-bottom: 10px; font-size: 12px; font-weight: 700; border-radius: 4px; border: 2px solid ${data.avis === 'conforme' ? '#1a5c38' : data.avis === 'reserve' ? '#8b6914' : '#8b1a1a'}; color: ${data.avis === 'conforme' ? '#1a5c38' : data.avis === 'reserve' ? '#8b6914' : '#8b1a1a'};">
+            ${getAvisTextFormal(data.avis)}
+          </div>
+
+          ${ncCount > 0 ? `
+          <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 6px; margin-top: 8px; font-size: 8px;">
+            <div style="font-weight: 700; color: #991b1b; margin-bottom: 3px;">Non-conformités relevées : ${ncCount}</div>
+            ${generateNCList(data.sections)}
+          </div>
+          ` : ''}
+
+          <div style="display: flex; gap: 10px; font-size: 8px; margin-top: 10px;">
+            <div style="flex: 1;">
+              <div style="font-weight: 700; color: #374151; margin-bottom: 3px;">Observations / Réserves :</div>
+              <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 6px; min-height: 35px;">${data.observations || 'Néant'}</div>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; color: #374151; margin-bottom: 3px;">Actions correctives :</div>
+              <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 6px; min-height: 35px;">${getActionsCorrectivesText(data.avis)}</div>
+            </div>
+          </div>
+        </div>
       </div>
-      ` : ''}
+
+      <!-- Signatures -->
+      <div style="display: flex; gap: 15px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #d1d5db;">
+        <div style="flex: 1;">
+          <div style="font-size: 8px; font-weight: 700; color: #374151;">Inspecteur</div>
+          <div style="font-size: 7px; color: #6b7280;">${data.inspecteur || '−'}<br>Le ${formatDateFR(data.dateInspection)}</div>
+          ${data.signature ? `<img src="${data.signature}" style="max-width: 150px; max-height: 45px; margin-top: 5px;" />` : '<div style="border-bottom: 1px solid #1a1a1a; height: 35px; margin-top: 5px;"></div>'}
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 8px; font-weight: 700; color: #374151;">Client / Représentant</div>
+          <div style="font-size: 7px; color: #6b7280;">${data.client || '−'}<br>Lu et approuvé, le</div>
+          <div style="border-bottom: 1px solid #1a1a1a; height: 35px; margin-top: 5px;"></div>
+        </div>
+        <div style="flex: 0 0 auto;">
+          <div style="font-size: 8px; font-weight: 700; color: #374151;">Cachet</div>
+          <div style="width: 60px; height: 60px; border: 1px dashed #9ca3af; display: flex; align-items: center; justify-content: center; font-size: 6px; color: #9ca3af; text-align: center;">Cachet<br>organisme</div>
+        </div>
+      </div>
 
       <!-- Footer -->
-      <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #1e3a5f; font-size: 12px; color: #666;">
-        <p>Rapport généré le ${generatedAt}</p>
-        <p>Conformément à l'arrêté du 1er mars 2004 - Document à conserver 5 ans minimum</p>
-        <p style="text-align: right;"><strong>Réf: ${reportNum}</strong></p>
+      <div style="margin-top: 10px; padding-top: 8px; border-top: 2px solid #1e3a5f; font-size: 7px; color: #6b7280; display: flex; justify-content: space-between;">
+        <div>
+          Ce rapport est établi conformément à l'arrêté du 1er mars 2004.<br>
+          Document à conserver pendant 5 ans minimum (Art. R.4323-25 du Code du Travail).
+        </div>
+        <div style="text-align: right;">
+          <strong>Réf: ${reportNum}</strong><br>
+          ${generatedAt}
+        </div>
       </div>
+
+      ${photoHTML}
+    </div>
+  `;
+}
+
+// Helper: Generate check section HTML for PDF
+function generateCheckSectionHTML(title, article, items, labels) {
+  if (!items || items.length === 0) return '';
+
+  let rows = '';
+  items.forEach((item, i) => {
+    let status = item.status;
+    if (!status && item.checked !== undefined) {
+      status = item.checked ? 'c' : '';
+    }
+
+    let statusText, statusColor;
+    switch (status) {
+      case 'c': statusText = '✔'; statusColor = '#1a5c38'; break;
+      case 'nc': statusText = '⚠'; statusColor = '#d97706'; break;
+      case 'nca': statusText = '✘'; statusColor = '#8b1a1a'; break;
+      case 'na': statusText = '—'; statusColor = '#000'; break;
+      default: statusText = '—'; statusColor = '#999';
+    }
+
+    rows += `
+      <tr style="${i % 2 === 1 ? 'background: #fafafa;' : ''}">
+        <td style="padding: 3px 5px; border: 1px solid #d1d5db;">${labels[i] || 'Point ' + (i + 1)}</td>
+        <td style="padding: 3px 5px; border: 1px solid #d1d5db; text-align: center; font-weight: 700; font-size: 14px; color: ${statusColor};">${statusText}</td>
+        <td style="padding: 3px 5px; border: 1px solid #d1d5db; font-style: italic; color: #6b7280; font-size: 7px;">${item.note || ''}</td>
+      </tr>
+    `;
+  });
+
+  return `
+    <div style="margin-bottom: 6px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #1e3a5f; color: white; padding: 4px 8px; font-size: 9px; font-weight: 600;">
+        <span>${title}</span>
+        <span style="font-size: 7px; font-weight: 400; opacity: 0.8;">${article}</span>
+      </div>
+      <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+        <thead>
+          <tr>
+            <th style="background: #e5e7eb; padding: 3px 5px; text-align: left; font-weight: 600; border: 1px solid #d1d5db; font-size: 7px;">Point de contrôle</th>
+            <th style="background: #e5e7eb; padding: 3px 5px; text-align: center; font-weight: 600; border: 1px solid #d1d5db; font-size: 7px; width: 40px;">Résultat</th>
+            <th style="background: #e5e7eb; padding: 3px 5px; text-align: left; font-weight: 600; border: 1px solid #d1d5db; font-size: 7px; width: 25%;">Observations</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
     </div>
   `;
 }
