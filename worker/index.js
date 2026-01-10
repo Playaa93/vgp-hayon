@@ -70,6 +70,10 @@ export default {
         return await syncData(request, env, userNs, corsHeaders);
       }
 
+      if (path === '/api/send-report' && request.method === 'POST') {
+        return await sendReport(request, env, corsHeaders);
+      }
+
       if (path === '/api/me') {
         return jsonResponse({ email: session.email }, 200, corsHeaders);
       }
@@ -310,4 +314,62 @@ async function syncData(request, env, userNs, corsHeaders) {
   }
 
   return jsonResponse(result, 200, corsHeaders);
+}
+
+// ========== SEND REPORT BY EMAIL ==========
+
+async function sendReport(request, env, corsHeaders) {
+  const { to, subject, filename, pdfBase64 } = await request.json();
+
+  if (!to || !to.includes('@')) {
+    return jsonResponse({ error: 'Email destinataire invalide' }, 400, corsHeaders);
+  }
+
+  if (!pdfBase64) {
+    return jsonResponse({ error: 'PDF manquant' }, 400, corsHeaders);
+  }
+
+  const emailBody = {
+    from: 'VGP Inspect <vgp@neteco.pro>',
+    to: to,
+    subject: subject || 'Rapport VGP',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #1e3a5f; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 20px;">Rapport VGP</h1>
+        </div>
+        <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+          <p>Bonjour,</p>
+          <p>Veuillez trouver ci-joint le rapport de Vérification Générale Périodique.</p>
+          <p>Cordialement,<br>VGP Inspect</p>
+        </div>
+        <p style="color: #666; font-size: 12px; margin-top: 20px; text-align: center;">
+          Conformément à l'arrêté du 1er mars 2004 - Document à conserver 5 ans minimum
+        </p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: filename || 'rapport-vgp.pdf',
+        content: pdfBase64
+      }
+    ]
+  };
+
+  const emailRes = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(emailBody)
+  });
+
+  if (!emailRes.ok) {
+    const err = await emailRes.text();
+    console.error('Resend error:', err);
+    return jsonResponse({ error: 'Erreur envoi email' }, 500, corsHeaders);
+  }
+
+  return jsonResponse({ success: true, message: 'Email envoyé avec PDF' }, 200, corsHeaders);
 }

@@ -866,6 +866,314 @@ document.getElementById('btn-new').addEventListener('click', () => {
 // Generate PDF
 document.getElementById('btn-pdf').addEventListener('click', generatePDF);
 
+// Send by Email
+document.getElementById('btn-email').addEventListener('click', sendByEmail);
+
+async function sendByEmail() {
+  // Validate required questions
+  const validation = validateRequiredQuestions();
+  if (!validation.valid) {
+    showValidationErrors(validation);
+    alert('Impossible d\'envoyer : toutes les questions obligatoires doivent être renseignées.');
+    return;
+  }
+
+  // Check conclusion
+  const avis = document.getElementById('avis').value;
+  if (!avis) {
+    alert('Veuillez renseigner l\'avis avant d\'envoyer.');
+    switchTab('conclusion');
+    return;
+  }
+
+  // Ask for recipient email
+  const recipientEmail = prompt('Email du destinataire :');
+  if (!recipientEmail || !recipientEmail.includes('@')) {
+    if (recipientEmail !== null) showToast('Email invalide');
+    return;
+  }
+
+  const data = collectFormData();
+
+  showToast('Génération du PDF...');
+
+  try {
+    // Generate PDF
+    const pdfBase64 = await generatePDFBase64(data);
+
+    showToast('Envoi en cours...');
+
+    const response = await fetch(`${CLOUD_API_URL}/api/send-report`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getSessionToken()}`
+      },
+      body: JSON.stringify({
+        to: recipientEmail,
+        subject: `Rapport VGP - ${data.client} - ${data.immat || 'Sans immat'}`,
+        filename: `VGP_${data.client || 'Rapport'}_${data.dateInspection || 'date'}.pdf`,
+        pdfBase64: pdfBase64
+      })
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      showToast('Email envoyé avec PDF !');
+    } else {
+      throw new Error(result.error || 'Erreur envoi');
+    }
+  } catch (err) {
+    console.error('Email error:', err);
+    showToast('Erreur: ' + err.message);
+  }
+}
+
+// Generate PDF as base64
+async function generatePDFBase64(data) {
+  const { jsPDF } = window.jspdf;
+
+  // Create hidden container for rendering
+  const container = document.createElement('div');
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.width = '210mm';
+  container.style.background = 'white';
+  container.innerHTML = generateReportHTMLForPDF(data);
+  document.body.appendChild(container);
+
+  // Wait for content to render
+  await new Promise(resolve => setTimeout(resolve, 100));
+
+  // Capture with html2canvas
+  const canvas = await html2canvas(container, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    width: container.scrollWidth,
+    height: container.scrollHeight
+  });
+
+  // Remove container
+  document.body.removeChild(container);
+
+  // Create PDF
+  const imgData = canvas.toDataURL('image/jpeg', 0.95);
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
+  const imgWidth = canvas.width;
+  const imgHeight = canvas.height;
+  const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+  const imgX = (pdfWidth - imgWidth * ratio) / 2;
+
+  // Handle multi-page if needed
+  const pageHeight = pdfHeight * (imgWidth / pdfWidth);
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  pdf.addImage(imgData, 'JPEG', 0, position * ratio, pdfWidth, imgHeight * ratio * (pdfWidth / imgWidth));
+  heightLeft -= pageHeight;
+
+  while (heightLeft > 0) {
+    position = heightLeft - imgHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, 'JPEG', 0, position * ratio * (pdfWidth / imgWidth), pdfWidth, imgHeight * ratio * (pdfWidth / imgWidth));
+    heightLeft -= pageHeight;
+  }
+
+  // Return base64 without the data:application/pdf;base64, prefix
+  const pdfOutput = pdf.output('datauristring');
+  return pdfOutput.split(',')[1];
+}
+
+// Generate HTML for PDF rendering (simplified for canvas capture)
+function generateReportHTMLForPDF(data) {
+  const isCe = data.marquageCe === 'ce';
+  const dynCoef = isCe ? 1.1 : 1.2;
+  const statCoef = isCe ? 1.25 : 1.5;
+  const year = new Date(data.dateInspection).getFullYear();
+  const reportNum = `VGP-${year}-${data.id.slice(-4).padStart(4, '0')}`;
+  const generatedAt = new Date().toLocaleString('fr-FR');
+  const ncCount = countNonConformities(data.sections);
+
+  return `
+    <div style="font-family: Arial, sans-serif; padding: 30px; color: #333; font-size: 14px;">
+      <!-- Header -->
+      <div style="background: #1e3a5f; color: white; padding: 25px; text-align: center; margin-bottom: 25px;">
+        <h1 style="margin: 0; font-size: 22px;">RAPPORT DE VÉRIFICATION GÉNÉRALE PÉRIODIQUE</h1>
+        <p style="margin: 8px 0 0 0; opacity: 0.9;">N° ${reportNum} - ${getEquipmentTypeLabel(data.typeEquipement)}</p>
+      </div>
+
+      <!-- Info Grid -->
+      <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+        <div style="flex: 1;">
+          <div style="background: #1e3a5f; color: white; padding: 10px 15px; font-weight: bold;">ÉQUIPEMENT</div>
+          <div style="border: 1px solid #ddd; border-top: none; padding: 15px;">
+            <p style="margin: 8px 0;"><strong>Type:</strong> ${getEquipmentTypeLabel(data.typeEquipement)}</p>
+            <p style="margin: 8px 0;"><strong>Marque:</strong> ${data.marqueHayon || '−'}</p>
+            <p style="margin: 8px 0;"><strong>N° série:</strong> ${data.numSerie || '−'}</p>
+            <p style="margin: 8px 0;"><strong>Immat:</strong> ${data.immat || 'N/A'}</p>
+            <p style="margin: 8px 0;"><strong>CMU:</strong> ${data.cmu || '−'} kg</p>
+          </div>
+        </div>
+        <div style="flex: 1;">
+          <div style="background: #1e3a5f; color: white; padding: 10px 15px; font-weight: bold;">INTERVENTION</div>
+          <div style="border: 1px solid #ddd; border-top: none; padding: 15px;">
+            <p style="margin: 8px 0;"><strong>Client:</strong> ${data.client || '−'}</p>
+            <p style="margin: 8px 0;"><strong>Date:</strong> ${formatDateFR(data.dateInspection)}</p>
+            <p style="margin: 8px 0;"><strong>Inspecteur:</strong> ${data.inspecteur || '−'}</p>
+            <p style="margin: 8px 0;"><strong>Charge essai:</strong> ${data.chargeEssai || '−'} kg</p>
+            <p style="margin: 8px 0;"><strong>Prochaine VGP:</strong> ${formatDateFR(data.prochaineVgp)}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charges -->
+      <div style="background: #eff6ff; border: 1px solid #93c5fd; padding: 15px; margin-bottom: 25px; text-align: center;">
+        <strong style="color: #1e40af;">CHARGES D'ÉPREUVE (${isCe ? 'CE' : 'Non CE'})</strong>
+        <div style="display: flex; justify-content: center; gap: 40px; margin-top: 10px;">
+          <div><span style="color: #666;">CMU:</span> <strong>${data.cmu || '−'} kg</strong></div>
+          <div><span style="color: #666;">Dynamique (×${dynCoef}):</span> <strong>${Math.round((data.cmu || 0) * dynCoef)} kg</strong></div>
+          <div><span style="color: #666;">Statique (×${statCoef}):</span> <strong>${Math.round((data.cmu || 0) * statCoef)} kg</strong></div>
+        </div>
+      </div>
+
+      <!-- Verdict -->
+      <div style="text-align: center; padding: 25px; margin: 25px 0; font-size: 20px; font-weight: bold; border: 3px solid ${data.avis === 'conforme' ? '#1a5c38' : data.avis === 'reserve' ? '#8b6914' : '#8b1a1a'}; border-radius: 10px; background: ${data.avis === 'conforme' ? '#f0fdf4' : data.avis === 'reserve' ? '#fffbeb' : '#fef2f2'}; color: ${data.avis === 'conforme' ? '#1a5c38' : data.avis === 'reserve' ? '#8b6914' : '#8b1a1a'};">
+        ${getAvisTextFormal(data.avis)}
+      </div>
+
+      ${ncCount > 0 ? `
+      <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 20px 0;">
+        <strong style="color: #991b1b;">Non-conformités (${ncCount}):</strong>
+        <div style="margin-top: 10px;">${generateNCList(data.sections)}</div>
+      </div>
+      ` : ''}
+
+      ${data.observations ? `
+      <div style="margin: 20px 0;">
+        <div style="background: #1e3a5f; color: white; padding: 10px 15px; font-weight: bold;">OBSERVATIONS</div>
+        <div style="border: 1px solid #ddd; border-top: none; padding: 15px;">${data.observations}</div>
+      </div>
+      ` : ''}
+
+      <!-- Signature -->
+      ${data.signature ? `
+      <div style="margin: 25px 0;">
+        <strong>Signature inspecteur:</strong>
+        <div style="margin-top: 10px;"><img src="${data.signature}" style="max-width: 200px; max-height: 80px;" /></div>
+      </div>
+      ` : ''}
+
+      <!-- Footer -->
+      <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #1e3a5f; font-size: 12px; color: #666;">
+        <p>Rapport généré le ${generatedAt}</p>
+        <p>Conformément à l'arrêté du 1er mars 2004 - Document à conserver 5 ans minimum</p>
+        <p style="text-align: right;"><strong>Réf: ${reportNum}</strong></p>
+      </div>
+    </div>
+  `;
+}
+
+// Generate Report HTML (shared between PDF and email)
+function generateReportHTML(data) {
+  const isCe = data.marquageCe === 'ce';
+  const dynCoef = isCe ? 1.1 : 1.2;
+  const statCoef = isCe ? 1.25 : 1.5;
+
+  const year = new Date(data.dateInspection).getFullYear();
+  const reportNum = `VGP-${year}-${data.id.slice(-4).padStart(4, '0')}`;
+
+  const generatedAt = new Date().toLocaleString('fr-FR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+
+  const ncCount = countNonConformities(data.sections);
+
+  return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="UTF-8">
+      <title>Rapport VGP ${reportNum}</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { background: #1e3a5f; color: white; padding: 20px; text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 20px; }
+        .header .subtitle { opacity: 0.9; font-size: 14px; }
+        .info-grid { display: flex; gap: 20px; margin-bottom: 20px; }
+        .info-section { flex: 1; }
+        .info-section h3 { background: #1e3a5f; color: white; padding: 8px 12px; margin: 0 0 10px 0; font-size: 14px; }
+        .info-row { display: flex; border-bottom: 1px solid #ddd; padding: 6px 0; }
+        .info-label { font-weight: bold; width: 40%; color: #666; }
+        .info-value { width: 60%; }
+        .verdict { text-align: center; padding: 20px; margin: 20px 0; font-size: 18px; font-weight: bold; border: 3px solid; border-radius: 8px; }
+        .verdict.conforme { color: #1a5c38; border-color: #1a5c38; background: #f0fdf4; }
+        .verdict.reserve { color: #8b6914; border-color: #8b6914; background: #fffbeb; }
+        .verdict.non-conforme { color: #8b1a1a; border-color: #8b1a1a; background: #fef2f2; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 2px solid #1e3a5f; font-size: 12px; color: #666; }
+        .nc-list { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 15px 0; }
+        .nc-list h4 { color: #991b1b; margin: 0 0 10px 0; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>RAPPORT DE VÉRIFICATION GÉNÉRALE PÉRIODIQUE</h1>
+        <div class="subtitle">N° ${reportNum} - ${getEquipmentTypeLabel(data.typeEquipement)}</div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-section">
+          <h3>ÉQUIPEMENT</h3>
+          <div class="info-row"><span class="info-label">Type</span><span class="info-value">${getEquipmentTypeLabel(data.typeEquipement)}</span></div>
+          <div class="info-row"><span class="info-label">Marque</span><span class="info-value">${data.marqueHayon || '−'}</span></div>
+          <div class="info-row"><span class="info-label">N° série</span><span class="info-value">${data.numSerie || '−'}</span></div>
+          <div class="info-row"><span class="info-label">Immatriculation</span><span class="info-value">${data.immat || 'N/A'}</span></div>
+          <div class="info-row"><span class="info-label">CMU</span><span class="info-value">${data.cmu || '−'} kg</span></div>
+        </div>
+        <div class="info-section">
+          <h3>INTERVENTION</h3>
+          <div class="info-row"><span class="info-label">Client</span><span class="info-value">${data.client || '−'}</span></div>
+          <div class="info-row"><span class="info-label">Date</span><span class="info-value">${formatDateFR(data.dateInspection)}</span></div>
+          <div class="info-row"><span class="info-label">Inspecteur</span><span class="info-value">${data.inspecteur || '−'}</span></div>
+          <div class="info-row"><span class="info-label">Prochaine VGP</span><span class="info-value">${formatDateFR(data.prochaineVgp)}</span></div>
+        </div>
+      </div>
+
+      <div class="verdict ${data.avis}">${getAvisTextFormal(data.avis)}</div>
+
+      ${ncCount > 0 ? `
+      <div class="nc-list">
+        <h4>Non-conformités relevées (${ncCount})</h4>
+        ${generateNCList(data.sections)}
+      </div>
+      ` : ''}
+
+      ${data.observations ? `
+      <div class="info-section">
+        <h3>OBSERVATIONS</h3>
+        <p style="padding: 10px;">${data.observations}</p>
+      </div>
+      ` : ''}
+
+      <div class="footer">
+        <p>Rapport généré le ${generatedAt}</p>
+        <p>Conformément à l'arrêté du 1er mars 2004 - Document à conserver 5 ans minimum</p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
 function generatePDF() {
   // Validate required questions - mandatory for PDF
   const validation = validateRequiredQuestions();
