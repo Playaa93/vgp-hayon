@@ -32,6 +32,12 @@ export default {
         return jsonResponse({ ok: true }, 200, corsHeaders);
       }
 
+      // Test endpoint
+      if (path === '/api/test-pdf' && request.method === 'POST') {
+        const { to } = await request.json();
+        return await sendTestPDFComplete(to, env, corsHeaders);
+      }
+
       // Protected routes - require session token
       const authHeader = request.headers.get('Authorization');
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -372,4 +378,222 @@ async function sendReport(request, env, corsHeaders) {
   }
 
   return jsonResponse({ success: true, message: 'Email envoyé avec PDF' }, 200, corsHeaders);
+}
+
+// Test: Send complete report HTML (same as app PDF)
+async function sendTestPDFComplete(to, env, corsHeaders) {
+  if (!to || !to.includes('@')) {
+    return jsonResponse({ error: 'Email invalide' }, 400, corsHeaders);
+  }
+
+  const today = new Date().toLocaleDateString('fr-FR');
+  const now = new Date().toLocaleString('fr-FR');
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  const nextVGP = nextYear.toLocaleDateString('fr-FR');
+
+  // Complete HTML template (same as generateReportHTMLForPDF in app.js)
+  const reportHTML = `
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #1a1a1a; background: white; padding: 20px; max-width: 800px; margin: 0 auto;">
+      <!-- Header -->
+      <div style="border: 2px solid #1e3a5f; margin-bottom: 15px;">
+        <div style="display: flex; border-bottom: 1px solid #e2e8f0;">
+          <div style="flex: 1; padding: 12px 15px; border-right: 1px solid #e2e8f0;">
+            <div style="font-size: 18px; font-weight: 700; color: #1e3a5f;">FLEETZEN</div>
+            <div style="font-size: 11px; color: #4a5568; margin-top: 5px;">Organisme de contrôle technique<br>Vérifications réglementaires des équipements de travail</div>
+          </div>
+          <div style="width: 160px; padding: 12px 15px; background: #f8fafc;">
+            <div style="font-size: 14px; font-weight: 700; color: #1e3a5f;">N° VGP-2026-TEST</div>
+            <div style="font-size: 10px; color: #718096; margin-top: 3px;">Généré le ${now}</div>
+          </div>
+        </div>
+        <div style="text-align: center; padding: 15px; background: #1e3a5f; color: white;">
+          <div style="font-size: 16px; font-weight: 700; letter-spacing: 1px;">RAPPORT DE VÉRIFICATION GÉNÉRALE PÉRIODIQUE</div>
+          <div style="font-size: 12px; opacity: 0.9; margin-top: 5px;">Appareil de levage − Hayon Rabattable</div>
+        </div>
+        <div style="padding: 8px 15px; background: #f1f5f9; font-size: 10px; color: #64748b; text-align: center;">
+          Conformément à l'Arrêté du 1er mars 2004 − Articles R.4323-23 à R.4323-27 du Code du Travail
+        </div>
+      </div>
+
+      <!-- Info Grid -->
+      <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+        <div style="flex: 1;">
+          <div style="font-size: 12px; font-weight: 700; color: white; background: #1e3a5f; padding: 8px 12px;">IDENTIFICATION DE L'APPAREIL</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600; width: 40%;">Type</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;">Hayon Rabattable</td></tr>
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Marque</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;">DHOLLANDIA</td></tr>
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">N° série</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;"><strong>DH-2024-12345</strong></td></tr>
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Immatriculation</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;">AB-123-CD</td></tr>
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Marquage CE</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;">OUI</td></tr>
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">CMU</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;"><strong>1500 kg</strong></td></tr>
+          </table>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 12px; font-weight: 700; color: white; background: #1e3a5f; padding: 8px 12px;">INTERVENTION</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600; width: 40%;">Client</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;"><strong>Société Test SARL</strong></td></tr>
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Date inspection</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;"><strong>${today}</strong></td></tr>
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Inspecteur</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;">Jean Dupont</td></tr>
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Charge d'essai</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;">1650 kg</td></tr>
+            <tr><td style="padding: 6px 10px; border: 1px solid #d1d5db; background: #f3f4f6; font-weight: 600;">Prochaine VGP</td><td style="padding: 6px 10px; border: 1px solid #d1d5db;"><strong>${nextVGP}</strong></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Charges -->
+      <div style="background: #eff6ff; border: 1px solid #93c5fd; padding: 12px; margin-bottom: 15px;">
+        <div style="font-size: 12px; font-weight: 700; color: #1e40af; margin-bottom: 8px; text-align: center;">CHARGES D'ÉPREUVE RÉGLEMENTAIRES (Appareil CE)</div>
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1; background: white; border: 1px solid #bfdbfe; padding: 10px; text-align: center;">
+            <div style="font-size: 10px; color: #64748b;">CMU Nominale</div>
+            <div style="font-size: 16px; font-weight: 700; color: #1e40af;">1500 kg</div>
+          </div>
+          <div style="flex: 1; background: white; border: 1px solid #bfdbfe; padding: 10px; text-align: center;">
+            <div style="font-size: 10px; color: #64748b;">Épreuve Dynamique</div>
+            <div style="font-size: 16px; font-weight: 700; color: #1e40af;">1650 kg</div>
+            <div style="font-size: 9px; color: #94a3b8;">CMU × 1.1</div>
+          </div>
+          <div style="flex: 1; background: white; border: 1px solid #bfdbfe; padding: 10px; text-align: center;">
+            <div style="font-size: 10px; color: #64748b;">Épreuve Statique</div>
+            <div style="font-size: 16px; font-weight: 700; color: #1e40af;">1875 kg</div>
+            <div style="font-size: 9px; color: #94a3b8;">CMU × 1.25</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div style="display: flex; gap: 20px; font-size: 10px; color: #374151; margin: 10px 0; padding: 8px 12px; background: #f9fafb; border: 1px solid #e5e7eb; justify-content: center;">
+        <span><span style="color: #1a5c38; font-weight: 700; font-size: 14px;">✔</span> Conforme</span>
+        <span><span style="color: #d97706; font-weight: 700; font-size: 14px;">⚠</span> NC (réserve)</span>
+        <span><span style="color: #8b1a1a; font-weight: 700; font-size: 14px;">✘</span> NC (arrêt)</span>
+        <span><span style="color: #000; font-weight: 700; font-size: 14px;">—</span> N/A</span>
+      </div>
+
+      <!-- Section 1: Docs -->
+      <div style="margin-bottom: 10px;">
+        <div style="background: #1e3a5f; color: white; padding: 8px 12px; font-size: 11px; font-weight: 600;">1. EXAMEN D'ADÉQUATION ET DOCUMENTAIRE <span style="float: right; opacity: 0.8; font-weight: 400;">Art. 5</span></div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+          <tr style="background: #e5e7eb;"><th style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: left;">Point de contrôle</th><th style="padding: 5px 8px; border: 1px solid #d1d5db; width: 60px; text-align: center;">Résultat</th><th style="padding: 5px 8px; border: 1px solid #d1d5db; width: 25%;">Observations</th></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Plaque signalétique lisible et complète</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">CMU / Abaque de charges présent</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Consignes de sécurité affichées</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Certificat de conformité CE</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Notice d'utilisation présente</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #d97706; font-weight: 700; font-size: 16px;">⚠</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; font-style: italic; color: #6b7280;">À fournir</td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Carnet de maintenance à jour</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+        </table>
+      </div>
+
+      <!-- Section 2: Visuel (abbreviated) -->
+      <div style="margin-bottom: 10px;">
+        <div style="background: #1e3a5f; color: white; padding: 8px 12px; font-size: 11px; font-weight: 600;">2. EXAMEN DE L'ÉTAT DE CONSERVATION <span style="float: right; opacity: 0.8; font-weight: 400;">Art. 9</span></div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+          <tr style="background: #e5e7eb;"><th style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: left;">Point de contrôle</th><th style="padding: 5px 8px; border: 1px solid #d1d5db; width: 60px; text-align: center;">Résultat</th><th style="padding: 5px 8px; border: 1px solid #d1d5db; width: 25%;">Observations</th></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Fixation châssis</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">État général structure</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Flexibles hydrauliques</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Vérins hydrauliques</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Commande bi-manuelle</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Arrêt d'urgence</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+        </table>
+      </div>
+
+      <!-- Section 3: Sécurité -->
+      <div style="margin-bottom: 10px;">
+        <div style="background: #1e3a5f; color: white; padding: 8px 12px; font-size: 11px; font-weight: 600;">3. DISPOSITIFS DE SÉCURITÉ <span style="float: right; opacity: 0.8; font-weight: 400;">Art. 9</span></div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+          <tr style="background: #e5e7eb;"><th style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: left;">Point de contrôle</th><th style="padding: 5px 8px; border: 1px solid #d1d5db; width: 60px; text-align: center;">Résultat</th><th style="padding: 5px 8px; border: 1px solid #d1d5db; width: 25%;">Observations</th></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Limiteur de charge</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Limiteur de débit</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Freinage vertical</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Bandes réfléchissantes</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+        </table>
+      </div>
+
+      <!-- Section 4: Essais -->
+      <div style="margin-bottom: 10px;">
+        <div style="background: #1e3a5f; color: white; padding: 8px 12px; font-size: 11px; font-weight: 600;">4. ESSAIS DE FONCTIONNEMENT ET ÉPREUVES <span style="float: right; opacity: 0.8; font-weight: 400;">Art. 10-11</span></div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+          <tr style="background: #e5e7eb;"><th style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: left;">Point de contrôle</th><th style="padding: 5px 8px; border: 1px solid #d1d5db; width: 60px; text-align: center;">Résultat</th><th style="padding: 5px 8px; border: 1px solid #d1d5db; width: 25%;">Observations</th></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Essai des mouvements</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Épreuve dynamique − 1650 kg</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Épreuve statique 1h − 1875 kg</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+          <tr style="background: #fafafa;"><td style="padding: 5px 8px; border: 1px solid #d1d5db;">Maintien de charge 10 min</td><td style="padding: 5px 8px; border: 1px solid #d1d5db; text-align: center; color: #1a5c38; font-weight: 700; font-size: 16px;">✔</td><td style="padding: 5px 8px; border: 1px solid #d1d5db;"></td></tr>
+        </table>
+      </div>
+
+      <!-- Conclusion -->
+      <div style="border: 2px solid #1e3a5f; margin-top: 15px;">
+        <div style="background: #1e3a5f; color: white; padding: 10px 15px; font-size: 13px; font-weight: 700;">CONCLUSION DE LA VÉRIFICATION</div>
+        <div style="padding: 15px;">
+          <div style="text-align: center; padding: 15px; margin-bottom: 15px; font-size: 16px; font-weight: 700; border-radius: 6px; border: 3px solid #8b6914; color: #8b6914; background: #fffbeb;">
+            APPAREIL CONFORME SOUS RÉSERVE
+          </div>
+          <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 10px; margin-bottom: 15px;">
+            <div style="font-weight: 700; color: #991b1b; margin-bottom: 5px;">Non-conformités relevées : 1</div>
+            <div style="font-size: 11px;">• Documentation : Notice d'utilisation à fournir</div>
+          </div>
+          <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+              <div style="font-weight: 700; color: #374151; margin-bottom: 5px;">Observations :</div>
+              <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px; min-height: 50px;">Bon état général. Notice d'utilisation à fournir au propriétaire.</div>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; color: #374151; margin-bottom: 5px;">Actions correctives :</div>
+              <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px; min-height: 50px;">Levée des réserves obligatoire dans un délai raisonnable.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div style="display: flex; gap: 20px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #d1d5db;">
+        <div style="flex: 1;">
+          <div style="font-weight: 700; color: #374151; margin-bottom: 5px;">Inspecteur</div>
+          <div style="font-size: 10px; color: #6b7280;">Jean Dupont<br>Le ${today}</div>
+          <div style="border-bottom: 1px solid #1a1a1a; height: 40px; margin-top: 10px;"></div>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-weight: 700; color: #374151; margin-bottom: 5px;">Client / Représentant</div>
+          <div style="font-size: 10px; color: #6b7280;">Société Test SARL<br>Lu et approuvé, le</div>
+          <div style="border-bottom: 1px solid #1a1a1a; height: 40px; margin-top: 10px;"></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="margin-top: 15px; padding-top: 10px; border-top: 2px solid #1e3a5f; font-size: 10px; color: #6b7280; display: flex; justify-content: space-between;">
+        <div>
+          Ce rapport est établi conformément à l'arrêté du 1er mars 2004.<br>
+          Document à conserver pendant 5 ans minimum (Art. R.4323-25 du Code du Travail).
+        </div>
+        <div style="text-align: right;">
+          <strong>Réf: VGP-2026-TEST</strong><br>
+          ${now}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Send email with HTML report
+  const emailRes = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: 'VGP Inspect <vgp@neteco.pro>',
+      to: to,
+      subject: 'Rapport VGP Complet - Société Test SARL - AB-123-CD',
+      html: reportHTML
+    })
+  });
+
+  if (!emailRes.ok) {
+    const err = await emailRes.text();
+    console.error('Resend error:', err);
+    return jsonResponse({ error: err }, 500, corsHeaders);
+  }
+
+  return jsonResponse({ success: true, message: 'Email envoyé avec rapport complet !' }, 200, corsHeaders);
 }
