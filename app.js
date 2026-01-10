@@ -1821,26 +1821,44 @@ let photos = {
 let currentPhotoTarget = null;
 let currentLightboxPhoto = null;
 
-const photoInput = document.getElementById('photo-input');
+const photoInputCamera = document.getElementById('photo-input-camera');
+const photoInputGallery = document.getElementById('photo-input-gallery');
 const photoInputGeneral = document.getElementById('photo-input-general');
+const photoActionSheet = document.getElementById('photo-action-sheet');
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightbox-img');
 
-// Capture photo for a specific check item
+// Show photo action sheet
 function capturePhoto(itemId) {
   currentPhotoTarget = itemId;
-  photoInput.click();
+  photoActionSheet.classList.add('active');
 }
 
 // Capture general photo
 function captureGeneralPhoto() {
   currentPhotoTarget = 'general';
-  photoInputGeneral.click();
+  photoActionSheet.classList.add('active');
+}
+
+// Close photo action sheet
+function closePhotoSheet() {
+  photoActionSheet.classList.remove('active');
+}
+
+// Select photo source (camera or gallery)
+function selectPhotoSource(source) {
+  closePhotoSheet();
+  if (source === 'camera') {
+    photoInputCamera.click();
+  } else {
+    photoInputGallery.click();
+  }
 }
 
 // Handle photo input change
-photoInput.addEventListener('change', handlePhotoCapture);
-photoInputGeneral.addEventListener('change', handlePhotoCapture);
+photoInputCamera.addEventListener('change', handlePhotoCapture);
+photoInputGallery.addEventListener('change', handlePhotoCapture);
+if (photoInputGeneral) photoInputGeneral.addEventListener('change', handlePhotoCapture);
 
 function handlePhotoCapture(e) {
   const file = e.target.files[0];

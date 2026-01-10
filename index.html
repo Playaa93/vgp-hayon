@@ -12,8 +12,13 @@
 </head>
 <body>
   <header>
-    <h1>VGP - Inspection</h1>
-    <p class="subtitle">Hayons & Tables Élévatrices</p>
+    <div class="header-content">
+      <div class="header-badge">VGP</div>
+      <div class="header-info">
+        <h1>Inspection</h1>
+        <p class="subtitle">Hayons & Tables Élévatrices</p>
+      </div>
+    </div>
     <button class="theme-toggle" id="theme-toggle" aria-label="Changer le thème">
       <svg id="icon-sun" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="5"></circle>
@@ -1141,8 +1146,26 @@
     </div><!-- END TAB: Conclusion -->
   </main>
 
-  <!-- Photo Input (hidden) -->
-  <input type="file" id="photo-input" accept="image/*" style="display:none">
+  <!-- Photo Inputs (hidden) -->
+  <input type="file" id="photo-input-camera" accept="image/*" capture="environment" style="display:none">
+  <input type="file" id="photo-input-gallery" accept="image/*" style="display:none">
+
+  <!-- Photo Action Sheet -->
+  <div id="photo-action-sheet" class="action-sheet">
+    <div class="action-sheet-backdrop" onclick="closePhotoSheet()"></div>
+    <div class="action-sheet-content">
+      <div class="action-sheet-header">Ajouter une photo</div>
+      <button class="action-sheet-btn" onclick="selectPhotoSource('camera')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Appareil photo
+      </button>
+      <button class="action-sheet-btn" onclick="selectPhotoSource('gallery')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Galerie
+      </button>
+      <button class="action-sheet-btn cancel" onclick="closePhotoSheet()">Annuler</button>
+    </div>
+  </div>
 
   <!-- Photo Lightbox -->
   <div id="lightbox" class="lightbox" onclick="closeLightbox()">
