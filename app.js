@@ -627,6 +627,7 @@ document.querySelectorAll('.status-btn').forEach(btn => {
 });
 
 // Auto-update verdict based on NC/NCA status
+let previousVerdict = null;
 function updateVerdictFromStatus() {
   const avisSelect = document.getElementById('avis');
   let hasNCA = false;
@@ -639,12 +640,22 @@ function updateVerdictFromStatus() {
   });
 
   // Auto-set verdict based on findings
+  let newVerdict = null;
   if (hasNCA) {
-    avisSelect.value = 'non-conforme';
-    showToast('Verdict auto: NON CONFORME (mise à l\'arrêt)');
+    newVerdict = 'non-conforme';
   } else if (hasNC) {
-    avisSelect.value = 'reserve';
-    showToast('Verdict auto: Conforme sous réserve');
+    newVerdict = 'reserve';
+  }
+
+  // Only show toast when verdict actually changes
+  if (newVerdict && newVerdict !== previousVerdict) {
+    avisSelect.value = newVerdict;
+    if (newVerdict === 'non-conforme') {
+      showToast('Verdict auto: NON CONFORME (mise à l\'arrêt)');
+    } else if (newVerdict === 'reserve') {
+      showToast('Verdict auto: Conforme sous réserve');
+    }
+    previousVerdict = newVerdict;
   }
 }
 
