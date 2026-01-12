@@ -737,7 +737,22 @@ function saveInspection(skipValidation = false) {
   localStorage.setItem('vgp-current', inspection.id);
 
   showToast('Inspection sauvegardée');
+  updateHeaderStatus('saved');
   loadInspectionsList();
+}
+
+function updateHeaderStatus(status) {
+  const headerStatus = document.getElementById('header-status');
+  const statusText = headerStatus?.querySelector('.status-text');
+  if (!headerStatus || !statusText) return;
+
+  if (status === 'saved') {
+    headerStatus.classList.add('saved');
+    statusText.textContent = 'Sauvegardé';
+  } else {
+    headerStatus.classList.remove('saved');
+    statusText.textContent = 'Brouillon';
+  }
 }
 
 function collectFormData() {
@@ -864,6 +879,7 @@ function loadInspection(id) {
   });
 
   showToast('Inspection chargée');
+  updateHeaderStatus('saved');
 }
 
 // New Inspection
@@ -879,6 +895,19 @@ document.getElementById('btn-pdf').addEventListener('click', generatePDF);
 
 // Send by Email
 document.getElementById('btn-email').addEventListener('click', sendByEmail);
+
+// Header quick actions
+document.getElementById('btn-save-header')?.addEventListener('click', saveInspection);
+document.getElementById('btn-pdf-header')?.addEventListener('click', generatePDF);
+document.getElementById('btn-email-header')?.addEventListener('click', sendByEmail);
+document.getElementById('btn-history-header')?.addEventListener('click', showHistory);
+
+function showHistory() {
+  switchTab('conclusion');
+  setTimeout(() => {
+    document.getElementById('historique-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
 
 async function sendByEmail() {
   // Validate required questions
